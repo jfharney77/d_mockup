@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#e9e9ee;font-family:'Public Sans',Helvetica,Arial,sans-serif;}
+a{color:#3b3f6b}a:hover{color:#1f2250}
+@keyframes va-spin{to{transform:rotate(360deg)}}
+@keyframes va-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;justify-content:center;align-items:stretch;padding:16px 0;box-sizing:border-box">
+<div data-screen-label="Assistant" style="width:100%;max-width:440px;display:flex;flex-direction:column;background:#f4f5fb;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px rgba(30,30,70,.18);min-height:860px">
+  <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:linear-gradient(90deg,oklch(45% .19 275) 0%,oklch(52% .21 320) 60%,oklch(55% .22 355) 100%);color:#fff">
+    <button aria-label="Menu" style="background:none;border:0;padding:6px;cursor:pointer;color:#fff;display:flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2z"/></svg>
+      <span style="font-size:19px;font-weight:500;letter-spacing:-.01em">Virtual Assistant</span>
+      <span style="background:#fff;color:#1f6b2e;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;letter-spacing:.04em">BETA</span>
+    </div>
+    <button aria-label="Expand" style="background:none;border:0;padding:6px;cursor:pointer;color:#fff;display:flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
+    <button aria-label="Close" onClick="{{ onClose }}" style="background:none;border:0;padding:6px;cursor:pointer;color:#fff;display:flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M13 5l7 7-7 7"/></svg></button>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;padding:22px 20px 8px;display:flex;flex-direction:column;gap:22px">
+    <sc-for list="{{ messages }}" as="m" hint-placeholder-count="3">
+      <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;justify-content:flex-end"><div style="background:oklch(50% .09 275);color:#fff;font-size:17px;padding:12px 16px;border-radius:14px 14px 4px 14px;max-width:85%;text-wrap:pretty">{{ m.text }}</div></div>
+      </sc-if>
+      <sc-if value="{{ m.isBot }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="oklch(50% .2 300)" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2z"/></svg>
+            <button aria-label="Read aloud" style="background:none;border:0;padding:4px;cursor:pointer;color:oklch(45% .1 275);display:flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M4 10v4h4l5 4V6l-5 4zM16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/></svg></button>
+          </div>
+          <p style="margin:0;font-size:17px;line-height:1.5;color:#1d1f33;text-wrap:pretty">{{ m.text }}</p>
+          <div style="display:flex;gap:14px">
+            <button aria-label="Helpful" style="background:none;border:0;padding:2px;cursor:pointer;color:oklch(45% .1 275);display:flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M7 11v9H3v-9zM7 11l4-8c1.5 0 2.5 1 2.5 2.5V9H19a2 2 0 012 2l-1.4 7a2 2 0 01-2 1.6H7"/></svg></button>
+            <button aria-label="Not helpful" style="background:none;border:0;padding:2px;cursor:pointer;color:oklch(45% .1 275);display:flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" style="transform:rotate(180deg)"><path d="M7 11v9H3v-9zM7 11l4-8c1.5 0 2.5 1 2.5 2.5V9H19a2 2 0 012 2l-1.4 7a2 2 0 01-2 1.6H7"/></svg></button>
+          </div>
+        </div>
+      </sc-if>
+    </sc-for>
+
+    <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:18px">
+        {{ spinnerEl }}
+        <p style="margin:0;font-size:22px;line-height:1.4;font-weight:400;background:linear-gradient(90deg,#3a3d55 0%,#3a3d55 35%,#b7bacb 60%,#3a3d55 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:va-shimmer 2.4s linear infinite">I’m working on your response...</p>
+      </div>
+    </sc-if>
+    <sc-if value="{{ showSignIn }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="oklch(50% .2 300)" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2z"/></svg>
+        <div style="background:#e6e9f7;border:1px solid oklch(72% .08 275);border-radius:8px;padding:18px 16px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:19px;font-weight:600;color:#1d1f33">Save your chats</div>
+          <p style="margin:0;font-size:15px;line-height:1.5;color:#2c2f45;text-wrap:pretty">Sign in to start saving your chats. Once you're signed in, you can access your recent chats in the menu.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+            <button style="background:#1c2143;color:#fff;border:0;border-radius:6px;padding:11px 18px;font:600 15px 'Public Sans',sans-serif;cursor:pointer" style-hover="background:#2a3060">Sign In</button>
+            <button style="background:transparent;color:#1c2143;border:1.5px solid #1c2143;border-radius:6px;padding:11px 18px;font:600 15px 'Public Sans',sans-serif;cursor:pointer" style-hover="background:#dde1f3">Create an Account</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ chatEnded }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:16px;align-items:flex-start">
+        <p style="margin:0;font-size:17px;line-height:1.5;color:#1d1f33;text-wrap:pretty">Our chat has ended due to inactivity. If you have questions, select Start a New Chat.</p>
+        <button onClick="{{ newChat }}" style="position:relative;background:#fff;color:#1d1f33;border:2px solid transparent;border-radius:8px;padding:13px 22px;font:600 17px 'Public Sans',sans-serif;cursor:pointer;background-image:linear-gradient(#fff,#fff),linear-gradient(90deg,oklch(45% .19 275),oklch(55% .22 355));background-origin:border-box;background-clip:padding-box,border-box">Start a New Chat</button>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="padding:14px 20px 16px;display:flex;flex-direction:column;gap:12px">
+    <div style="position:relative;display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #2f3566;border-radius:999px;padding:8px 8px 8px 22px;box-shadow:0 2px 10px rgba(40,40,90,.08);margin-top:10px">
+      <span style="position:absolute;top:-11px;left:22px;background:#fff;padding:0 8px;font:700 14px 'Public Sans',sans-serif;color:#3b3f8a;line-height:1.4">Ask me a question</span>
+      <input value="{{ draft }}" onChange="{{ onDraft }}" placeholder="" style="flex:1;min-width:0;border:0;outline:0;font:700 20px 'Public Sans',sans-serif;color:#3b3f8a;background:transparent;letter-spacing:-.01em">
+      <button aria-label="Voice input" style="width:44px;height:44px;border-radius:50%;border:1.5px solid oklch(88% .03 275);background:#fff;color:oklch(60% .05 275);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
+      <button aria-label="Send" onClick="{{ send }}" style="width:48px;height:48px;border-radius:50%;border:0;background:linear-gradient(135deg,oklch(62% .16 300),oklch(68% .18 350));color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="filter:brightness(1.06)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M13 5l7 7-7 7"/></svg></button>
+    </div>
+    <p style="margin:0;text-align:center;font-size:13px;color:#4a4d66">Please verify responses. <a href="#" style="color:#4a4d66">Transparency Statement</a></p>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:480,&quot;height&quot;:900},&quot;showSignIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;},&quot;onClose&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;chatEnded&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;}}">
+class Component extends DCLogic {
+  state = { draft: '', messages: null, ended: null, thinking: false };
+  static KEY = 'dell_va_chat';
+  componentDidMount() {
+    try { const s = JSON.parse(localStorage.getItem(Component.KEY) || 'null'); if (s && s.messages) this.setState({ messages: s.messages, ended: s.ended ?? false }); } catch (e) {}
+  }
+  persist(messages, ended) { try { localStorage.setItem(Component.KEY, JSON.stringify({ messages, ended })); } catch (e) {} }
+  componentWillUnmount() { clearTimeout(this._t); }
+  defaults() {
+    return [
+      { isBot: true, text: "You've asked for the service tag of the machine you're on, but to assist you with troubleshooting, could you please tell me what issue you're experiencing with the machine?" },
+      { isUser: true, text: 'Diagnose my system' },
+      { isBot: true, text: "What issue are you experiencing with your system that you'd like me to diagnose?" }
+    ];
+  }
+  renderVals() {
+    const msgs = this.state.messages ?? this.defaults();
+    const ended = this.state.ended ?? (this.props.chatEnded ?? true);
+    return {
+      messages: msgs,
+      draft: this.state.draft,
+      showSignIn: this.props.showSignIn ?? true,
+      chatEnded: ended && !this.state.thinking,
+      thinking: this.state.thinking,
+      spinnerEl: React.createElement('svg', { width: 36, height: 36, viewBox: '0 0 24 24', fill: 'none', stroke: 'url(#vaGrad)', strokeWidth: 1.8, strokeLinejoin: 'round', style: { animation: 'va-spin 2s linear infinite', transformOrigin: '50% 50%' } },
+        React.createElement('defs', null, React.createElement('linearGradient', { id: 'vaGrad', x1: '0', y1: '0', x2: '1', y2: '1' }, React.createElement('stop', { offset: '0', stopColor: '#2f55c9' }), React.createElement('stop', { offset: '1', stopColor: '#b0287a' }))),
+        React.createElement('path', { d: 'M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2z' }),
+        React.createElement('path', { d: 'M19 2v3M17.5 3.5h3M5 19v3M3.5 20.5h3', strokeLinecap: 'round' })),
+      onClose: () => { if (this.props.onClose) this.props.onClose(); },
+      onDraft: e => this.setState({ draft: e.target.value }),
+      send: () => {
+        const t = this.state.draft.trim(); if (!t) return;
+        const withUser = [...msgs, { isUser: true, text: t }];
+        this.setState({ messages: withUser, draft: '', ended: false, thinking: true });
+        clearTimeout(this._t);
+        this.persist(withUser, false);
+        this._t = setTimeout(() => { const m = [...withUser, { isBot: true, text: "Thanks — let me look into that for you." }]; this.persist(m, false); this.setState({ messages: m, thinking: false }); }, 5000);
+      },
+      newChat: () => { const m = [{ isBot: true, text: 'Hi! How can I help you today?' }]; this.persist(m, false); this.setState({ messages: m, ended: false }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

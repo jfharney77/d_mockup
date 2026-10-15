@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dell Support — XPS 16 9640</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+a { color: #0672cb; }
+a:hover { color: #00447c; }
+img { display: block; width: 100%; height: auto; }
+
+/* ── Site header ── */
+.site-header {
+  position: relative;
+}
+/* Invisible clickable overlay links on the header image */
+.header-link {
+  position: absolute;
+  top: 64%;
+  height: 30%;
+  border-radius: 4px;
+  transition: background .1s;
+}
+.header-link:hover {
+  background: rgba(6,114,203,.08);
+}
+
+/* ── Layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 7fr;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  border-right: 1px solid #e5e7eb;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+}
+.sidebar-inner {
+  position: relative;
+}
+.sidebar-inner img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* Invisible clickable overlay buttons on the sidebar image */
+.sidebar-btn {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: background .1s;
+}
+.sidebar-btn:hover {
+  background: rgba(0,0,0,.04);
+}
+/* Highlight behind the selected sidebar item (grey row + blue left bar) */
+.sidebar-active {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 6.76%;
+  background: #e6e6e6;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.sidebar-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1.1%;
+  min-width: 3px;
+  height: 100%;
+  background: #1a6fb5;
+}
+
+/* ── Product banner ── */
+.banner {
+  position: relative;
+}
+/* Invisible clickable overlay buttons on screenshot images */
+.overlay-btn {
+  position: absolute;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.overlay-btn:hover {
+  background: rgba(6,114,203,.06);
+}
+
+/* ── Main content ── */
+.main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Tab bar (Overview) ── */
+.tab-bar {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.tab-bar img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.tab-btn {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.tab-btn:hover {
+  background: rgba(6,114,203,.04);
+}
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 3px;
+  background: #0672cb;
+  transition: left .25s ease;
+}
+
+/* ── Content sections ── */
+.section { display: none; flex-direction: column; }
+.section.active { display: flex; }
+
+/* Cropped image container - for showing part of an image */
+.crop-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.crop-container img {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+</style>
+<link rel="stylesheet" href="../shared/va.css">
+</head>
+<body>
+
+<!-- ════════ SITE HEADER ════════ -->
+<header class="site-header">
+  <img src="uploads/header-1792004093968-9bg6.png" alt="Dell Technologies site header">
+  <a class="header-link" href="https://www.dell.com/en-uk/shop" target="_blank" rel="noopener" style="left:1.5%;  width:4.6%" aria-label="Products"></a>
+  <a class="header-link" href="https://www.dell.com/en-uk/dt/solutions/index.htm" target="_blank" rel="noopener" style="left:7.4%;  width:4.9%" aria-label="Solutions"></a>
+  <a class="header-link" href="https://www.dell.com/en-uk/dt/services/index.htm" target="_blank" rel="noopener" style="left:13.7%; width:4.5%" aria-label="Services"></a>
+</header>
+
+<div class="layout">
+  <!-- ════════ SIDEBAR ════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+      <img src="sidebar_clean.png" alt="Navigation sidebar">
+      <div class="sidebar-active" id="sidebarActive" style="top:6.95%"></div>
+      <button class="sidebar-btn active" id="sidebarOverview"    style="top:6.5%;  height:7%" aria-label="Overview"></button>
+      <button class="sidebar-btn"        id="sidebarDD"          style="top:13.5%; height:7%" aria-label="Drivers & Downloads"></button>
+      <button class="sidebar-btn"        id="sidebarDiag"        style="top:20.5%; height:7%" aria-label="Diagnostics"></button>
+      <button class="sidebar-btn"        id="sidebarSR"          style="top:81.5%; height:7%" aria-label="Service Requests"></button>
+      <button class="sidebar-btn"        id="sidebarPR"          style="top:88.5%; height:7%" aria-label="Parts & Repairs"></button>
+    </div>
+  </aside>
+
+  <!-- ════════ MAIN ════════ -->
+  <main class="main">
+    <!-- Banner (always visible) -->
+    <div class="banner">
+      <img src="uploads/product_page_banner.png" alt="XPS 16 9640 — Product banner">
+      <button class="overlay-btn" data-alert="Product Specifications" style="left:77.2%; top:47%;   width:12.2%; height:9%" aria-label="Product Specifications"></button>
+      <button class="overlay-btn" data-alert="Change product"         style="left:77.2%; top:67%;   width:10.4%; height:9%" aria-label="Change product"></button>
+      <button class="overlay-btn" data-alert="Log In to Add Alias"    style="left:28.9%; top:55.5%; width:10%;   height:8%" aria-label="Log In to Add Alias"></button>
+      <button class="overlay-btn" data-alert="Premium Support"        style="left:48%;   top:64%;   width:9.5%;  height:8%" aria-label="Premium Support"></button>
+      <button class="overlay-btn" data-alert="Extend or Renew"        style="left:29.9%; top:71.5%; width:9.3%;  height:8%" aria-label="Extend or Renew"></button>
+    </div>
+
+    <!-- ──── Overview ──── -->
+    <div class="section active" id="viewOverview">
+      <img src="uploads/product_page_o_banner1.png" alt="Overview summary cards">
+
+      <!-- Tab bar -->
+      <div class="tab-bar" id="tabBar">
+        <div style="position:relative;width:100%;padding-top:7.45%;overflow:hidden">
+          <img src="uploads/product_page_o_middle1.png" alt="Section tabs" style="position:absolute;left:0;top:0;width:100%;height:auto">
+          <div class="tab-indicator" id="tabIndicator" style="left:33.4%;width:11.1%"></div>
+          <button class="tab-btn" id="tabTroubleshooting" style="left:33.4%;width:11.1%" aria-label="Troubleshooting"></button>
+          <button class="tab-btn" id="tabPopular"         style="left:44.5%;width:11%"  aria-label="Popular Solutions"></button>
+          <button class="tab-btn" id="tabSearch"          style="left:55.5%;width:11.1%" aria-label="Search Solutions"></button>
+        </div>
+      </div>
+
+      <!-- Tab content: Troubleshooting -->
+      <div class="section active" id="contentTroubleshooting">
+        <div class="crop-container" style="padding-top:16.42%">
+          <img src="uploads/product_page_o_middle1.png" alt="Troubleshooting and diagnostics" style="top:-45.39%">
+        </div>
+        <img src="uploads/product_page_o_middle2.png" alt="Top resources">
+      </div>
+
+      <!-- Tab content: Popular Solutions -->
+      <div class="section" id="contentPopular">
+        <div class="crop-container" style="padding-top:38.35%">
+          <img src="uploads/product_page_o_popularsolutions.png" alt="Popular solutions" style="top:-13.16%">
+        </div>
+      </div>
+
+      <!-- Tab content: Search Solutions -->
+      <div class="section" id="contentSearch">
+        <div class="crop-container" style="padding-top:45.63%">
+          <img src="uploads/product_page_o_searchsolutions.png" alt="Search solutions" style="top:-13.9%">
+        </div>
+      </div>
+
+      <img src="uploads/product_page_o_middle3.png" alt="More options to explore">
+    </div>
+
+    <!-- ──── Drivers & Downloads ──── -->
+    <div class="section" id="viewDD">
+      <img src="uploads/product_page_dd_middle1.png" alt="Automatic driver updates">
+      <img src="uploads/produce_page_dd_middle2.png" alt="Additional resources">
+    </div>
+
+    <!-- ──── Diagnostics ──── -->
+    <div class="section" id="viewDiag">
+      <img src="uploads/product_page_d_banner1.png" alt="Diagnostics banner">
+      <img src="uploads/product_page_d_middle1.png" alt="Diagnostics section 1">
+      <img src="uploads/product_page_d_middle2.png" alt="Diagnostics section 2">
+      <img src="uploads/product_page_d_middle3.png" alt="Diagnostics section 3">
+    </div>
+
+    <!-- ──── Service Requests ──── -->
+    <div class="section" id="viewSR">
+      <img src="uploads/product_page_sr_middle1.png" alt="Service request look-up">
+    </div>
+
+    <!-- ──── Parts & Repairs ──── -->
+    <div class="section" id="viewPR">
+      <img src="uploads/product_page_pr_middle1.png" alt="Parts and repairs">
+    </div>
+  </main>
+</div>
+
+<script>
+// ── Sidebar navigation ──
+const views = {
+  overview: document.getElementById('viewOverview'),
+  dd:       document.getElementById('viewDD'),
+  diag:     document.getElementById('viewDiag'),
+  sr:       document.getElementById('viewSR'),
+  pr:       document.getElementById('viewPR'),
+};
+
+const sidebarBtns = {
+  overview: document.getElementById('sidebarOverview'),
+  dd:       document.getElementById('sidebarDD'),
+  diag:     document.getElementById('sidebarDiag'),
+  sr:       document.getElementById('sidebarSR'),
+  pr:       document.getElementById('sidebarPR'),
+};
+
+// Top offset of the highlight row for each sidebar item (matches sidebar_clean.png)
+const sidebarActive = document.getElementById('sidebarActive');
+const activeTops = { overview: '6.95%', dd: '13.64%', diag: '20.4%', sr: '81.5%', pr: '88.3%' };
+
+function showView(key) {
+  Object.values(views).forEach(v => v.classList.remove('active'));
+  Object.values(sidebarBtns).forEach(b => b.classList.remove('active'));
+  views[key].classList.add('active');
+  sidebarBtns[key].classList.add('active');
+  sidebarActive.style.top = activeTops[key];
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+Object.entries(sidebarBtns).forEach(([key, btn]) => {
+  btn.addEventListener('click', () => showView(key));
+});
+
+// ── Banner placeholder actions ──
+document.querySelectorAll('.overlay-btn[data-alert]').forEach(btn => {
+  btn.addEventListener('click', () => alert(btn.dataset.alert));
+});
+
+// Open a specific view from the URL: index.html#diag, or ?view=diag as the design uses
+const initialView = location.hash.slice(1) || new URLSearchParams(location.search).get('view');
+if (views[initialView]) showView(initialView);
+
+// ── Overview tabs ──
+const tabContents = {
+  troubleshooting: document.getElementById('contentTroubleshooting'),
+  popular:         document.getElementById('contentPopular'),
+  search:          document.getElementById('contentSearch'),
+};
+
+const tabBtns = {
+  troubleshooting: document.getElementById('tabTroubleshooting'),
+  popular:         document.getElementById('tabPopular'),
+  search:          document.getElementById('tabSearch'),
+};
+
+const tabIndicator = document.getElementById('tabIndicator');
+
+const tabPositions = {
+  troubleshooting: { left: '33.4%', width: '11.1%' },
+  popular:         { left: '44.5%', width: '11%' },
+  search:          { left: '55.5%', width: '11.1%' },
+};
+
+function showTab(key) {
+  Object.values(tabContents).forEach(c => c.classList.remove('active'));
+  tabContents[key].classList.add('active');
+  tabIndicator.style.left = tabPositions[key].left;
+  tabIndicator.style.width = tabPositions[key].width;
+}
+
+Object.entries(tabBtns).forEach(([key, btn]) => {
+  btn.addEventListener('click', () => showTab(key));
+});
+</script>
+
+<!-- Virtual Assistant button + chat drawer (shared with the landing page) -->
+<script src="../shared/va.js"></script>
+</body>
+</html>

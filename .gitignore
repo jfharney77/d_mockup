@@ -1,0 +1,12 @@
+# Real product data (service tag, express service code, warranty).
+# Copy data/product.example.json to data/product.json and fill it in locally.
+data/product.json
+
+# Claude Design export archives: they bundle every screenshot, including the
+# ones that show the service tag, so keep them out of the repo.
+latest.zip
+latest.zip.zip
+old_designs/
+
+# Local Claude Code settings
+.claude/settings.local.json

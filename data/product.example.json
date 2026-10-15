@@ -1,0 +1,19 @@
+{
+  "thisPc": {
+    "label": "This PC",
+    "model": "XXX XX XXXX",
+    "serviceTag": "XXXXXXX",
+    "expressServiceCode": "XXXXXXXXXXX",
+    "image": null,
+    "warranty": {
+      "plan": "XXXXXXX XXXXXXX",
+      "status": "XXXXX XX XXXXXXXX XX, XXXX",
+      "actionLabel": "XXXXXX XX XXXXX",
+      "actionUrl": "#"
+    }
+  },
+  "recentlyViewed": [
+    { "name": "XXXX XXX XXXXXXXXX XX XXXXXXX", "image": null },
+    { "name": "Events and Error Codes", "image": null }
+  ]
+}

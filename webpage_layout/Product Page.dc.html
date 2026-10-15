@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><style>html,body{margin:0;padding:0;background:#fff}a{color:#0672cb}a:hover{color:#00447c}</style></helmet>
+<div style="position:relative;width:100%">
+  <img src="uploads/header-1792004093968-9bg6.png" alt="Site header" style="display:block;width:100%;height:auto">
+  <button type="button" aria-label="Products" onClick="{{ alertProducts }}" style="position:absolute;left:1.5%;top:68%;width:4.2%;height:26%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+  <button type="button" aria-label="Solutions" onClick="{{ alertSolutions }}" style="position:absolute;left:7.5%;top:68%;width:4.5%;height:26%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+  <button type="button" aria-label="Services" onClick="{{ alertServices }}" style="position:absolute;left:13.5%;top:68%;width:4.3%;height:26%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+</div>
+<div style="display:grid;grid-template-columns:1fr 7fr;min-height:100vh;width:100%">
+  <aside style="border-right:1px solid #e5e7eb;background:#fff;position:relative;align-self:start">
+    <img src="sidebar_clean.png" alt="Left sidebar" style="display:block;width:100%;height:auto">
+    <sc-if value="{{ hasActive }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:0;top:{{ activeTop }};width:100%;height:6.76%;background:#e6e6e6;mix-blend-mode:multiply;pointer-events:none"></div>
+      <div style="position:absolute;left:0;top:{{ activeTop }};width:1.1%;height:6.76%;background:#1a6fb5;pointer-events:none"></div>
+    </sc-if>
+    <button type="button" aria-label="Overview" onClick="{{ showOverview }}" style="position:absolute;left:0;top:6.5%;width:100%;height:7%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+    <button type="button" aria-label="Drivers & Downloads" onClick="{{ showDD }}" style="position:absolute;left:0;top:13.5%;width:100%;height:7%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+    <button type="button" aria-label="Service Requests" onClick="{{ showSR }}" style="position:absolute;left:0;top:81.5%;width:100%;height:7%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+    <button type="button" aria-label="Parts & Repairs" onClick="{{ showPR }}" style="position:absolute;left:0;top:88.5%;width:100%;height:7%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+    <button type="button" aria-label="Diagnostics" onClick="{{ showDiag }}" style="position:absolute;left:0;top:20.5%;width:100%;height:7%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+  </aside>
+  <main style="min-width:0;display:flex;flex-direction:column">
+    <div style="position:relative;width:100%">
+      <img src="uploads/product_page_banner.png" alt="Product banner" style="display:block;width:100%;height:auto">
+      <button type="button" aria-label="Product Specifications" onClick="{{ alertProductSpecs }}" style="position:absolute;left:77.2%;top:47%;width:12.2%;height:9%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+      <button type="button" aria-label="Change product" onClick="{{ alertChangeProduct }}" style="position:absolute;left:77.2%;top:67%;width:10.4%;height:9%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+      <button type="button" aria-label="Log In to Add Alias" onClick="{{ alertAddAlias }}" style="position:absolute;left:28.9%;top:55.5%;width:10%;height:8%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+      <button type="button" aria-label="Premium Support" onClick="{{ alertPremiumSupport }}" style="position:absolute;left:48%;top:64%;width:9.5%;height:8%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+      <button type="button" aria-label="Extend or Renew" onClick="{{ alertExtendRenew }}" style="position:absolute;left:29.9%;top:71.5%;width:9.3%;height:8%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+    </div>
+    <sc-if value="{{ overviewOpen }}" hint-placeholder-val="{{ false }}">
+      <img src="uploads/product_page_o_banner1.png" alt="Overview summary" style="display:block;width:100%;height:auto">
+      <div style="position:relative;width:100%;padding-top:7.45%;overflow:hidden">
+        <img src="uploads/product_page_o_middle1.png" alt="Overview tabs" style="position:absolute;left:0;top:0;width:100%;height:auto;display:block">
+        <sc-if value="{{ tabIndicatorMoved }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;left:33.4%;width:11.1%;top:89%;height:11%;background:#0c2d5c"></div>
+          <div style="position:absolute;left:{{ indicatorLeft }};width:11%;top:89%;height:11%;background:#4fb3f0"></div>
+        </sc-if>
+        <button type="button" aria-label="Troubleshooting" onClick="{{ showTabTroubleshooting }}" style="position:absolute;left:33.4%;top:0;width:11.1%;height:100%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+        <button type="button" aria-label="Popular Solutions" onClick="{{ showTabPopular }}" style="position:absolute;left:44.5%;top:0;width:11%;height:100%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+        <button type="button" aria-label="Search Solutions" onClick="{{ showTabSearch }}" style="position:absolute;left:55.5%;top:0;width:11.1%;height:100%;background:transparent;border:0;padding:0;cursor:pointer"></button>
+      </div>
+      <sc-if value="{{ tabTroubleshooting }}" hint-placeholder-val="{{ true }}">
+        <div style="position:relative;width:100%;padding-top:16.42%;overflow:hidden">
+          <img src="uploads/product_page_o_middle1.png" alt="Troubleshooting and diagnostics" style="position:absolute;left:0;top:-45.39%;width:100%;height:auto;display:block">
+        </div>
+        <img src="uploads/product_page_o_middle2.png" alt="Top resources" style="display:block;width:100%;height:auto">
+      </sc-if>
+      <sc-if value="{{ tabPopular }}" hint-placeholder-val="{{ false }}">
+        <div style="position:relative;width:100%;padding-top:38.35%;overflow:hidden">
+          <img src="uploads/product_page_o_popularsolutions.png" alt="Popular solutions" style="position:absolute;left:0;top:-13.16%;width:100%;height:auto;display:block">
+        </div>
+      </sc-if>
+      <sc-if value="{{ tabSearch }}" hint-placeholder-val="{{ false }}">
+        <div style="position:relative;width:100%;padding-top:45.63%;overflow:hidden">
+          <img src="uploads/product_page_o_searchsolutions.png" alt="Search solutions" style="position:absolute;left:0;top:-13.9%;width:100%;height:auto;display:block">
+        </div>
+      </sc-if>
+      <img src="uploads/product_page_o_middle3.png" alt="More options to explore" style="display:block;width:100%;height:auto">
+    </sc-if>
+    <sc-if value="{{ ddOpen }}" hint-placeholder-val="{{ false }}">
+      <img src="uploads/product_page_dd_middle1.png" alt="Automatic driver updates" style="display:block;width:100%;height:auto">
+      <img src="uploads/produce_page_dd_middle2.png" alt="Additional resources" style="display:block;width:100%;height:auto">
+    </sc-if>
+    <sc-if value="{{ srOpen }}" hint-placeholder-val="{{ false }}">
+      <img src="uploads/product_page_sr_middle1.png" alt="Service request look-up" style="display:block;width:100%;height:auto">
+    </sc-if>
+    <sc-if value="{{ prOpen }}" hint-placeholder-val="{{ false }}">
+      <img src="uploads/product_page_pr_middle1.png" alt="Parts and repairs" style="display:block;width:100%;height:auto">
+    </sc-if>
+    <sc-if value="{{ diagOpen }}" hint-placeholder-val="{{ false }}">
+      <img src="uploads/product_page_d_banner1.png" alt="Diagnostics banner" style="display:block;width:100%;height:auto">
+      <img src="uploads/product_page_d_middle1.png" alt="Diagnostics section 1" style="display:block;width:100%;height:auto">
+      <img src="uploads/product_page_d_middle2.png" alt="Diagnostics section 2" style="display:block;width:100%;height:auto">
+      <img src="uploads/product_page_d_middle3.png" alt="Diagnostics section 3" style="display:block;width:100%;height:auto">
+    </sc-if>
+  </main>
+</div>
+<sc-if value="{{ vaOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;top:0;right:0;bottom:0;width:440px;max-width:100%;z-index:20;box-shadow:-12px 0 40px rgba(0,0,0,.45);background:#e9e9ee;overflow:auto">
+    <dc-import name="Virtual Assistant" on-close="{{ closeVA }}" hint-size="100%,100%"></dc-import>
+  </div>
+</sc-if>
+<button type="button" aria-label="Virtual Assistant" onClick="{{ toggleVA }}" style="position:fixed;right:24px;bottom:24px;background:none;border:0;padding:0;cursor:pointer;filter:drop-shadow(0 4px 12px rgba(0,0,0,.35));z-index:10" style-hover="transform:scale(1.05)"><img src="uploads/mindellva.png" alt="Virtual Assistant" style="height:32px;border-radius:16px;display:block"></button>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { vaOpen: (() => { try { return localStorage.getItem('dell_va_open') === '1'; } catch (e) { return false; } })(), view: (['overview','dd','diag','sr','pr'].includes(new URLSearchParams(window.location.search).get('view')) ? new URLSearchParams(window.location.search).get('view') : null), tab: 'troubleshooting' };
+  renderVals() {
+    const t = this.state.tab;
+    return {
+      tabTroubleshooting: t === 'troubleshooting',
+      tabPopular: t === 'popular',
+      tabIndicatorMoved: t !== 'troubleshooting',
+      indicatorLeft: t === 'popular' ? '44.5%' : '55.5%',
+      tabSearch: t === 'search',
+      showTabTroubleshooting: () => this.setState({ tab: 'troubleshooting' }),
+      showTabPopular: () => this.setState({ tab: 'popular' }),
+      showTabSearch: () => this.setState({ tab: 'search' }),
+      overviewOpen: this.state.view === 'overview',
+      showOverview: () => this.setState({ view: 'overview' }),
+      alertProducts: () => alert('Products'),
+      alertSolutions: () => alert('Solutions'),
+      alertServices: () => alert('Services'),
+      alertProductSpecs: () => alert('Product Specifications'),
+      alertChangeProduct: () => alert('Change product'),
+      alertAddAlias: () => alert('Log In to Add Alias'),
+      alertPremiumSupport: () => alert('Premium Support'),
+      alertExtendRenew: () => alert('Extend or Renew'),
+      hasActive: !!this.state.view,
+      activeTop: ({overview:'6.95%', dd:'13.64%', diag:'20.4%', sr:'81.5%', pr:'88.3%'})[this.state.view] || '0%',
+      vaOpen: this.state.vaOpen,
+      toggleVA: () => this.setState(st => { const o = !st.vaOpen; try { localStorage.setItem('dell_va_open', o ? '1' : '0'); } catch (e) {} return { vaOpen: o }; }),
+      closeVA: () => { try { localStorage.setItem('dell_va_open', '0'); } catch (e) {} this.setState({ vaOpen: false }); },
+      ddOpen: this.state.view === 'dd',
+      srOpen: this.state.view === 'sr',
+      prOpen: this.state.view === 'pr',
+      showPR: () => this.setState({ view: 'pr' }),
+      showSR: () => this.setState({ view: 'sr' }),
+      diagOpen: this.state.view === 'diag',
+      showDD: () => this.setState({ view: 'dd' }),
+      showDiag: () => this.setState({ view: 'diag' }),
+    };
+  }
+}
+</script>
+</body>
+</html>

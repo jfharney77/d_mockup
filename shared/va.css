@@ -1,0 +1,330 @@
+/* Virtual Assistant: floating button + right-hand chat drawer. Shared by both pages; see va.js. */
+
+/* ── Floating Virtual Assistant button ── */
+.va-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,.35));
+  transition: transform .15s ease, filter .15s ease;
+}
+.va-fab:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,.45));
+}
+.va-fab:active { transform: scale(0.97); }
+.va-fab img {
+  width: auto; /* the product page sets img { width: 100% } globally */
+  height: 32px;
+  border-radius: 16px;
+  display: block;
+}
+
+/* ── Virtual Assistant Chat Panel ── */
+/* Full-height drawer on the right; the chat card sits inside it */
+.va-panel {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  width: 440px;
+  max-width: 100%;
+  padding: 16px 0;
+  background: #e9e9ee;
+  box-shadow: -12px 0 40px rgba(0,0,0,.45);
+  font-family: 'Public Sans', Helvetica, Arial, sans-serif;
+  animation: va-slide-in .25s ease;
+}
+.va-panel.open { display: block; }
+@keyframes va-slide-in {
+  from { transform: translateX(40px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.va-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f4f5fb;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(30,30,70,.18);
+}
+
+/* Panel header */
+.va-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: linear-gradient(90deg, oklch(45% .19 275) 0%, oklch(52% .21 320) 60%, oklch(55% .22 355) 100%);
+  color: #fff;
+}
+.va-header button {
+  background: none;
+  border: 0;
+  padding: 6px;
+  cursor: pointer;
+  color: #fff;
+  display: flex;
+}
+.va-header-title {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.va-header-title span {
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.va-beta {
+  background: #fff;
+  color: #1f6b2e;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: .04em;
+}
+
+/* Messages area */
+.va-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 20px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.va-msg-user {
+  display: flex;
+  justify-content: flex-end;
+}
+.va-msg-user-bubble {
+  background: oklch(50% .09 275);
+  color: #fff;
+  font-size: 17px;
+  padding: 12px 16px;
+  border-radius: 14px 14px 4px 14px;
+  max-width: 85%;
+  text-wrap: pretty;
+}
+.va-msg-bot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.va-msg-bot-text {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+  color: #1d1f33;
+  text-wrap: pretty;
+}
+.va-msg-actions {
+  display: flex;
+  gap: 14px;
+}
+.va-msg-actions button {
+  background: none;
+  border: 0;
+  padding: 2px;
+  cursor: pointer;
+  color: oklch(45% .1 275);
+  display: flex;
+}
+.va-msg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.va-msg-header button {
+  background: none;
+  border: 0;
+  padding: 4px;
+  cursor: pointer;
+  color: oklch(45% .1 275);
+  display: flex;
+}
+
+/* Sign-in card */
+.va-signin-card {
+  background: #e6e9f7;
+  border: 1px solid oklch(72% .08 275);
+  border-radius: 8px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.va-signin-card h3 {
+  font-size: 19px;
+  font-weight: 600;
+  color: #1d1f33;
+  margin: 0;
+}
+.va-signin-card p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #2c2f45;
+}
+.va-signin-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.va-signin-actions .btn-primary {
+  background: #1c2143;
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 11px 18px;
+  font: 600 15px 'Public Sans', sans-serif;
+  cursor: pointer;
+}
+.va-signin-actions .btn-primary:hover { background: #2a3060; }
+.va-signin-actions .btn-secondary {
+  background: transparent;
+  color: #1c2143;
+  border: 1.5px solid #1c2143;
+  border-radius: 6px;
+  padding: 11px 18px;
+  font: 600 15px 'Public Sans', sans-serif;
+  cursor: pointer;
+}
+.va-signin-actions .btn-secondary:hover { background: #dde1f3; }
+
+/* "Working on your response" state */
+.va-thinking {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.va-thinking svg { animation: va-spin 2s linear infinite; transform-origin: 50% 50%; }
+.va-thinking p {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.4;
+  background: linear-gradient(90deg, #3a3d55 0%, #3a3d55 35%, #b7bacb 60%, #3a3d55 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: va-shimmer 2.4s linear infinite;
+}
+@keyframes va-spin { to { transform: rotate(360deg); } }
+@keyframes va-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* "Chat ended" notice */
+.va-ended {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+.va-ended p {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+  color: #1d1f33;
+  text-wrap: pretty;
+}
+.va-new-chat {
+  background: #fff;
+  color: #1d1f33;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 13px 22px;
+  font: 600 17px 'Public Sans', sans-serif;
+  cursor: pointer;
+  background-image: linear-gradient(#fff, #fff), linear-gradient(90deg, oklch(45% .19 275), oklch(55% .22 355));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+/* Input bar */
+.va-input-bar {
+  padding: 14px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.va-input-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1.5px solid #2f3566;
+  border-radius: 999px;
+  padding: 8px 8px 8px 22px;
+  margin-top: 10px;
+  box-shadow: 0 2px 10px rgba(40,40,90,.08);
+}
+/* Label that sits on the input's top border */
+.va-input-label {
+  position: absolute;
+  top: -11px;
+  left: 22px;
+  background: #fff;
+  padding: 0 8px;
+  font: 700 14px/1.4 'Public Sans', sans-serif;
+  color: #3b3f8a;
+}
+.va-input-row input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  font: 700 20px 'Public Sans', sans-serif;
+  letter-spacing: -.01em;
+  color: #3b3f8a;
+  background: transparent;
+}
+.va-input-row input::placeholder { color: #999; }
+.va-mic-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid oklch(88% .03 275);
+  background: #fff;
+  color: oklch(60% .05 275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: none;
+}
+.va-send-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 0;
+  background: linear-gradient(135deg, oklch(62% .16 300), oklch(68% .18 350));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: none;
+  transition: filter .15s;
+}
+.va-send-btn:hover { filter: brightness(1.06); }
+.va-disclaimer {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: #4a4d66;
+}
+.va-disclaimer a { color: #4a4d66; }
