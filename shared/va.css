@@ -130,6 +130,30 @@
   color: #1d1f33;
   text-wrap: pretty;
 }
+.va-question-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.va-question-btn {
+  width: 100%;
+  padding: 9px 11px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: linear-gradient(#f5f6fc, #f5f6fc) padding-box,
+              linear-gradient(110deg, #086fd6, #5a27c8 52%, #cf236c) border-box;
+  color: #171925;
+  font: 600 12px/1.35 'Public Sans', sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.va-question-btn:hover,
+.va-question-btn:focus-visible {
+  background: linear-gradient(#e9ecf8, #e9ecf8) padding-box,
+              linear-gradient(110deg, #086fd6, #5a27c8 52%, #cf236c) border-box;
+  outline: none;
+}
 .va-msg-actions {
   display: flex;
   gap: 14px;

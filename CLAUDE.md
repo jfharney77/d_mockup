@@ -34,11 +34,13 @@ dell_mockup/
 ├── claude_design_brief.md      # Context to paste into Claude Design when iterating
 ├── README.md, agents.md        # Public readme / how the pages were built
 ├── .gitignore                  # Keeps product.json, export zips and local settings out of git
+├── .env, .env.example          # API proxy configuration (git-ignored)
 ├── latest.zip                  # Current Claude Design export (overwritten; git-ignored)
 ├── old_designs/                # Archive of export zips (git-ignored)
 ├── screenshots/                # ORIGINAL screenshots of dell.com — upload these to Claude Design
 ├── uploads/                    # Landing page images: reference screenshots, VA icon (mindellva.png)
 ├── .claude/skills/integrate-design/  # /integrate-design workflow for new exports
+├── legacy/api/                 # Local ignored copy of the former FastAPI proxy
 └── webpage_layout/
     ├── index.html              # BUILT: product page
     ├── Product Page.dc.html    # Claude Design source (latest export)
@@ -109,10 +111,12 @@ keep them unless the user says otherwise:
   `<dc-import name="Virtual Assistant">`. Port changes from `Virtual Assistant.dc.html`
   (and the VA parts of the page designs) into these two files, never into a page. The
   icon is `uploads/mindellva.png`, resolved relative to `va.js`.
-- **VA memory**: drawer open/closed is kept in localStorage `dell_va_open`, and the
-  conversation is kept in `dell_va_chat` as `{messages, ended}`. These are the same
-  keys as the design, so the chat carries across pages and reloads. A first visit
-  opens on the "chat ended" notice.
+- **VA memory**: drawer open/closed is kept in localStorage `dell_va_open`. The
+  conversation is cleared on each page load, so the chat content starts empty.
+- **API proxy integration**: The Virtual Assistant calls the FastAPI proxy maintained at
+  `onlinepersonalizationagent/src/proxy_api`, which listens on port 8001 and forwards to
+  the graph and probing-agent services. The former in-repository proxy is retained locally
+  at `legacy/api/`, and the entire `legacy/` directory is excluded from Git.
 
 ## Conventions
 

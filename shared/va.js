@@ -64,27 +64,17 @@
   const vaSend = document.getElementById('vaSend');
   const vaMessages = document.getElementById('vaMessages');
 
-  // ── State (restored from localStorage when available) ──
+  // ── State (conversation resets on each page load) ──
   const load = (key) => { try { return localStorage.getItem(key); } catch (e) { return null; } };
   const save = (key, value) => { try { localStorage.setItem(key, value); } catch (e) {} };
 
-  let chatMessages = [
-    { isBot: true, text: "You've asked for the service tag of the machine you're on, but to assist you with troubleshooting, could you please tell me what issue you're experiencing with the machine?" },
-    { isUser: true, text: 'Diagnose my system' },
-    { isBot: true, text: "What issue are you experiencing with your system that you'd like me to diagnose?" }
-  ];
-  // A fresh visit opens on the "chat ended" notice (as in the design)
-  let chatEnded = true;
+  let chatMessages = [];
+  // A fresh visit starts with an empty conversation
+  let chatEnded = false;
   let thinking = false;
   let replyTimer = null;
 
-  try {
-    const saved = JSON.parse(load(CHAT_KEY) || 'null');
-    if (saved && Array.isArray(saved.messages)) {
-      chatMessages = saved.messages;
-      chatEnded = saved.ended ?? false;
-    }
-  } catch (e) {}
+  save(CHAT_KEY, JSON.stringify({ messages: chatMessages, ended: chatEnded }));
 
   function persistChat() {
     save(CHAT_KEY, JSON.stringify({ messages: chatMessages, ended: chatEnded }));
@@ -109,8 +99,22 @@
         const div = el('va-msg-bot',
           '<div class="va-msg-header">' + sparkSvg + '<button aria-label="Read aloud">' + speakerSvg + '</button></div>' +
           '<p class="va-msg-bot-text"></p>' +
+          '<div class="va-question-list"></div>' +
           '<div class="va-msg-actions"><button aria-label="Helpful">' + thumbUpSvg + '</button><button aria-label="Not helpful">' + thumbDownSvg + '</button></div>');
         div.querySelector('.va-msg-bot-text').textContent = m.text;
+        const questionList = div.querySelector('.va-question-list');
+        (m.questions || []).forEach(question => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'va-question-btn';
+          button.textContent = question;
+          button.addEventListener('click', () => {
+            vaInput.value = question;
+            vaInput.focus();
+          });
+          questionList.appendChild(button);
+        });
+        if (!questionList.childElementCount) questionList.remove();
         vaMessages.appendChild(div);
       }
     });
@@ -121,17 +125,19 @@
     }
 
     // Sign-in card
-    const signin = el('', sparkSvg +
-      '<div class="va-signin-card">' +
-        '<h3>Save your chats</h3>' +
-        '<p>Sign in to start saving your chats. Once you\'re signed in, you can access your recent chats in the menu.</p>' +
-        '<div class="va-signin-actions">' +
-          '<button class="btn-primary">Sign In</button>' +
-          '<button class="btn-secondary">Create an Account</button>' +
-        '</div>' +
-      '</div>');
-    signin.style.cssText = 'display:flex;flex-direction:column;gap:14px';
-    vaMessages.appendChild(signin);
+    if (chatMessages.length || thinking || chatEnded) {
+      const signin = el('', sparkSvg +
+        '<div class="va-signin-card">' +
+          '<h3>Save your chats</h3>' +
+          '<p>Sign in to start saving your chats. Once you\'re signed in, you can access your recent chats in the menu.</p>' +
+          '<div class="va-signin-actions">' +
+            '<button class="btn-primary">Sign In</button>' +
+            '<button class="btn-secondary">Create an Account</button>' +
+          '</div>' +
+        '</div>');
+      signin.style.cssText = 'display:flex;flex-direction:column;gap:14px';
+      vaMessages.appendChild(signin);
+    }
 
     // "Chat ended" notice with a Start a New Chat button
     if (chatEnded && !thinking) {
@@ -146,7 +152,7 @@
   }
 
   // ── Actions ──
-  function sendMessage() {
+  async function sendMessage() {
     const text = vaInput.value.trim();
     if (!text) return;
     chatMessages.push({ isUser: true, text });
@@ -156,12 +162,30 @@
     persistChat();
     renderMessages();
     clearTimeout(replyTimer);
-    replyTimer = setTimeout(() => {
-      chatMessages.push({ isBot: true, text: 'Thanks — let me look into that for you.' });
-      thinking = false;
-      persistChat();
-      renderMessages();
-    }, 5000);
+
+    // Call the visit-ids API proxy
+    try {
+      const response = await fetch('http://localhost:8001/visit-ids', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ service_tag: text })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorData)}`);
+      }
+
+      const data = await response.json();
+      chatMessages.push({ isBot: true, text: JSON.stringify(data, null, 2) });
+    } catch (error) {
+      console.error('API Error:', error);
+      chatMessages.push({ isBot: true, text: 'Sorry, I couldn\'t retrieve the visit IDs. Error: ' + error.message });
+    }
+
+    thinking = false;
+    persistChat();
+    renderMessages();
   }
 
   function startNewChat() {
@@ -189,6 +213,75 @@
   vaSend.addEventListener('click', sendMessage);
   vaInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') sendMessage();
+  });
+  window.addEventListener('dell-va-launch', async event => {
+    clearTimeout(replyTimer);
+    const serviceTag = event.detail?.serviceTag || '';
+    const start = event.detail?.start || '';
+    const end = event.detail?.end || '';
+    const visitId = event.detail?.visitId || '';
+    const context = [
+      serviceTag && `service_tag: ${serviceTag}`,
+      start && `start: ${start}`,
+      end && `end: ${end}`,
+      visitId && `visit_id: ${visitId}`
+    ].filter(Boolean).join('\n');
+    chatMessages = [{
+      isBot: true,
+      text: context ? `Virtual Assistant relaunched with:\n${context}` : 'Hi! How can I help you today?'
+    }];
+    chatEnded = false;
+    thinking = true;
+    persistChat();
+    setOpen(true);
+
+    try {
+      const response = await fetch('http://localhost:8001/probing-agent/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_tag: serviceTag,
+          visit_id: visitId,
+          start_date: start,
+          end_date: end
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
+      const questions = Array.isArray(data.probing_questions)
+        ? data.probing_questions.slice(0, 3).map(item => item?.question).filter(Boolean)
+        : [];
+      chatMessages.push({
+        isBot: true,
+        text: questions.length
+          ? 'Select a topic or enter your specific information.'
+          : 'No probing questions were returned.',
+        questions
+      });
+    } catch (error) {
+      console.error('Probing agent API error:', error);
+      const fallbackQuestions = [
+        'Why is there something rather than nothing?',
+        'What does your subjective experience of the color red look like?',
+        'If every part of an object is replaced over time, does it remain the same object?',
+        'What happened before time began?',
+        'Is the statement "This statement is false" true or false?',
+        'Does the universe have an intrinsic purpose?'
+      ];
+      for (let i = fallbackQuestions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [fallbackQuestions[i], fallbackQuestions[j]] = [fallbackQuestions[j], fallbackQuestions[i]];
+      }
+      chatMessages.push({
+        isBot: true,
+        text: 'Select a topic or enter your specific information.',
+        questions: fallbackQuestions.slice(0, 3)
+      });
+    }
+
+    thinking = false;
+    persistChat();
+    renderMessages();
   });
 
   // Reopen the drawer if it was open on the previous page

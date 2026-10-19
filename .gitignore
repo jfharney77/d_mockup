@@ -10,3 +10,7 @@ old_designs/
 
 # Local Claude Code settings
 .claude/settings.local.json
+
+# API proxy environment configuration
+.env
+legacy/
