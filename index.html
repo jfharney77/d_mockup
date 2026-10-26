@@ -92,6 +92,20 @@ a { color: inherit; text-decoration: none; }
   height: 26px;
 }
 .offset-form button:hover { background: #055bb5; }
+.offset-checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 11px system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: #1f2a37;
+  cursor: pointer;
+}
+.offset-checkbox-group input {
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+}
 
 /* ── Site header ── */
 .site-header {
@@ -589,6 +603,14 @@ a { color: inherit; text-decoration: none; }
     </label>
     <label for="endDate">end
       <input id="endDate" name="end" type="text" value="09/22/2026" autocomplete="off">
+    </label>
+    <label class="offset-checkbox-group">
+      <input type="radio" name="apiMode" value="probing" id="modeProbing" checked>
+      <span>probing</span>
+    </label>
+    <label class="offset-checkbox-group">
+      <input type="radio" name="apiMode" value="semantic" id="modeSemantic">
+      <span>semantic search</span>
     </label>
     <button type="submit">Launch Virtual Assistant</button>
   </form>

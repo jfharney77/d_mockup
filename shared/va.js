@@ -219,8 +219,9 @@
     const wasOpen = vaPanel.classList.contains('open');
     setOpen(!wasOpen);
 
-    // If opening the panel, call the probing-agent API with values from the form
+    // If opening the panel, check the API mode and call the appropriate API
     if (!wasOpen) {
+      const apiMode = document.querySelector('input[name="apiMode"]:checked')?.value || 'probing';
       const serviceTag = document.getElementById('serviceTag')?.value?.trim() || '';
       const visitId = document.getElementById('visitId')?.value?.trim() || '';
       const start = document.getElementById('startDate')?.value?.trim() || '';
@@ -242,47 +243,55 @@
       persistChat();
       renderMessages();
 
-      try {
-        const response = await fetch('http://localhost:8001/probing-agent/run', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            service_tag: serviceTag,
-            visit_id: visitId,
-            start_date: start,
-            end_date: end
-          })
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
-        const questions = Array.isArray(data.probing_questions)
-          ? data.probing_questions.slice(0, 3).map(item => item?.question).filter(Boolean)
-          : [];
-        chatMessages.push({
-          isBot: true,
-          text: questions.length
-            ? 'Select a topic or enter your specific information.'
-            : 'No probing questions were returned.',
-          questions
-        });
-      } catch (error) {
-        console.error('Probing agent API error:', error);
-        const fallbackQuestions = [
-          'Why is there something rather than nothing?',
-          'What does your subjective experience of the color red look like?',
-          'If every part of an object is replaced over time, does it remain the same object?',
-          'What happened before time began?',
-          'Is the statement "This statement is false" true or false?',
-          'Does the universe have an intrinsic purpose?'
-        ];
-        for (let i = fallbackQuestions.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [fallbackQuestions[i], fallbackQuestions[j]] = [fallbackQuestions[j], fallbackQuestions[i]];
+      if (apiMode === 'probing') {
+        try {
+          const response = await fetch('http://localhost:8001/probing-agent/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              service_tag: serviceTag,
+              visit_id: visitId,
+              start_date: start,
+              end_date: end
+            })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
+          const questions = Array.isArray(data.probing_questions)
+            ? data.probing_questions.slice(0, 3).map(item => item?.question).filter(Boolean)
+            : [];
+          chatMessages.push({
+            isBot: true,
+            text: questions.length
+              ? 'Select a topic or enter your specific information.'
+              : 'No probing questions were returned.',
+            questions
+          });
+        } catch (error) {
+          console.error('Probing agent API error:', error);
+          const fallbackQuestions = [
+            'Why is there something rather than nothing?',
+            'What does your subjective experience of the color red look like?',
+            'If every part of an object is replaced over time, does it remain the same object?',
+            'What happened before time began?',
+            'Is the statement "This statement is false" true or false?',
+            'Does the universe have an intrinsic purpose?'
+          ];
+          for (let i = fallbackQuestions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [fallbackQuestions[i], fallbackQuestions[j]] = [fallbackQuestions[j], fallbackQuestions[i]];
+          }
+          chatMessages.push({
+            isBot: true,
+            text: 'Select a topic or enter your specific information.',
+            questions: fallbackQuestions.slice(0, 3)
+          });
         }
+      } else {
+        // semantic search mode - just put "blank" in the chat
         chatMessages.push({
           isBot: true,
-          text: 'Select a topic or enter your specific information.',
-          questions: fallbackQuestions.slice(0, 3)
+          text: 'blank'
         });
       }
 
