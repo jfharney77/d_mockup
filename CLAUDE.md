@@ -32,7 +32,7 @@ dell_mockup/
 ├── data/product.example.json   # Committed template with XXX values
 ├── serve.cmd                   # Starts a local server on :8000 (needed for the JSON)
 ├── claude_design_brief.md      # Context to paste into Claude Design when iterating
-├── README.md, agents.md        # Public readme / how the pages were built
+├── README.md, AGENTS.md        # Public readme / overview for coding agents
 ├── .gitignore                  # Keeps product.json, export zips and local settings out of git
 ├── .env, .env.example          # API proxy configuration (git-ignored)
 ├── latest.zip                  # Current Claude Design export (overwritten; git-ignored)
