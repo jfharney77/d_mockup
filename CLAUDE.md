@@ -74,9 +74,16 @@ dell_mockup/
 These exist only in the built pages, not in the Claude Design sources. Re-apply or
 keep them unless the user says otherwise:
 
-- **Header nav links** (both pages): Products / Solutions / Services are `<a class="header-link">`
-  overlays linking to dell.com/en-uk pages in a new tab. Claude Design exports use
-  `alert()` placeholders for these — keep the links.
+- **Header nav links** (both pages): Products / Solutions / Services link to dell.com/en-uk
+  pages in a new tab. Claude Design exports use `alert()` placeholders for these, so keep
+  the links. On the product page they are `<a class="header-link">` overlays on the
+  header image. Since the 2026-10-26 export, the landing page header is HTML/CSS
+  (`.site-header`, `.header-item`), so the links there are `<a class="header-item">`.
+  The header's other buttons (Search, Sign In, Contact Us, UK/EN, Basket and most
+  Support dropdown items) keep the design's alerts.
+- **Support dropdown deep links** (landing page): Drivers & Downloads → `#dd`,
+  PC Diagnostics → `#diag`, Self-Repair & Parts → `#pr`, Service Requests & Dispatch
+  Status → `#sr` on `webpage_layout/index.html`. The design shows alerts for these.
 - **Deep links into the product page**: `webpage_layout/index.html#overview|dd|diag|sr|pr`
   opens that view (hash read on load). Don't rename the view keys.
 - **"Diagnose my system" pill** on the landing page is a link to
@@ -102,9 +109,9 @@ keep them unless the user says otherwise:
   `.thumbnail` in every export** before copying them, and never copy an unredacted one.
 - **Recently viewed cards** can be closed with their ✕ (the design's ✕ is static).
 - **Default view**: the built product page opens on Overview (the `.dc.html` opens with no view).
-- **Shared header image**: the landing page loads
-  `webpage_layout/uploads/header-1792004093968-9bg6.png` — if that file is renamed,
-  update both pages.
+- **Header image**: only the product page still uses the screenshot header
+  `webpage_layout/uploads/header-1792004093968-9bg6.png`. The landing page uses the
+  HTML/CSS header with the logo `uploads/logo_crop.png`.
 - **Virtual Assistant is shared code**: the button and chat drawer live in
   `shared/va.css` + `shared/va.js`, included by both pages. `va.js` builds its own
   markup, which is the plain-HTML equivalent of the design's

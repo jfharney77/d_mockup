@@ -23,8 +23,10 @@ HTML/CSS/JS page, so keep the designs simple to translate.
 - Overview has three tabs: Troubleshooting, Popular Solutions and Search Solutions.
 
 **Support Assistant landing page** (`Support Assistant.dc.html`, variant 1a):
-dark hero with an AI prompt box, quick-action pills, a product card and a Recently
-Viewed section.
+a "Top offset 100px" toggle bar, then an HTML/CSS site header (logo `uploads/logo_crop.png`,
+search box, Sign In / Contact Us / UK/EN / Basket, and a nav of Products, Solutions,
+Services and a Support dropdown), then a dark hero with an AI prompt box, quick-action
+pills, a product card and a Recently Viewed section.
 
 **Virtual Assistant** (`Virtual Assistant.dc.html`): both pages have the floating
 button and right-hand chat drawer. Keep the localStorage keys `dell_va_open` and

@@ -11,27 +11,153 @@
 body { font-family: Manrope, system-ui, sans-serif; background: #121a26; color: #f4f3ef; }
 a { color: inherit; text-decoration: none; }
 
+/* ── Top offset toggle (adds a 100px spacer above the header) ── */
+.offset-bar {
+  background: #fff;
+  border-bottom: 1px solid #d9dde3;
+  padding: 4px 22px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 400 7px system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: #1f2a37;
+}
+.offset-switch {
+  width: 20px;
+  height: 11px;
+  border-radius: 6px;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  background: #9aa3ad;
+  transition: background .15s;
+}
+.offset-switch span {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  transition: left .15s;
+}
+.offset-switch[aria-checked="true"] { background: #0672cb; }
+.offset-switch[aria-checked="true"] span { left: 10px; }
+.offset-spacer {
+  height: 0;
+  background: #fff;
+  transition: height .2s;
+}
+.offset-spacer.on { height: 100px; }
+
 /* ── Site header ── */
 .site-header {
-  position: relative;
+  background: #fff;
+  border-bottom: 1px solid #d9dde3;
+  padding: 0 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: #1f2a37;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  min-height: 50px;
+  padding-top: 12px;
+}
+.header-logo {
+  height: 22px;
+  width: auto;
+  display: block;
+  flex: none;
+}
+.header-search {
+  flex: 1;
+  max-width: 508px;
+  margin-left: 28px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #c4c9d0;
+  border-radius: 2px;
+  height: 26px;
+  padding: 0 10px 0 12px;
   background: #fff;
 }
-.site-header img {
-  display: block;
-  width: 100%;
-  height: auto;
+.header-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: 400 15px system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: #1f2a37;
 }
-/* Invisible clickable overlay links on the header image */
-.header-link {
+.header-search button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: #5a6472;
+  display: flex;
+}
+.header-utils {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+.header-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 400 16px/1 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: #1f2a37;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  padding: 8px 0 12px;
+}
+.support-menu-wrap { position: relative; }
+.support-menu {
+  display: none;
   position: absolute;
-  top: 64%;
-  height: 30%;
-  border-radius: 4px;
-  transition: background .1s;
+  left: -16px;
+  top: 28px;
+  z-index: 30;
+  background: #fff;
+  border: 1px solid #d9dde3;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  min-width: 300px;
+  padding: 8px 0;
+  flex-direction: column;
 }
-.header-link:hover {
-  background: rgba(6,114,203,.08);
+.support-menu.open { display: flex; }
+.support-menu button,
+.support-menu a {
+  font: 400 15px/1.2 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: #1f2a37;
+  background: none;
+  border: 0;
+  text-align: left;
+  padding: 10px 16px;
+  cursor: pointer;
+  white-space: nowrap;
 }
+.support-menu button:hover,
+.support-menu a:hover { background: #f0f2f5; }
 
 /* ── Header / Hero ── */
 .hero {
@@ -446,11 +572,47 @@ a { color: inherit; text-decoration: none; }
 <body>
 
 <!-- ════════════════ SITE HEADER ════════════════ -->
+<div class="offset-bar">
+  <button type="button" class="offset-switch" id="offsetSwitch" role="switch" aria-checked="false" aria-label="Top offset"><span></span></button>
+  <span>Top offset 100px</span>
+</div>
+<div class="offset-spacer" id="offsetSpacer"></div>
 <header class="site-header">
-  <img src="webpage_layout/uploads/header-1792004093968-9bg6.png" alt="Dell Technologies site header">
-  <a class="header-link" href="https://www.dell.com/en-uk/shop" target="_blank" rel="noopener" style="left:1.5%;  width:4.6%" aria-label="Products"></a>
-  <a class="header-link" href="https://www.dell.com/en-uk/dt/solutions/index.htm" target="_blank" rel="noopener" style="left:7.4%;  width:4.9%" aria-label="Solutions"></a>
-  <a class="header-link" href="https://www.dell.com/en-uk/dt/services/index.htm" target="_blank" rel="noopener" style="left:13.7%; width:4.5%" aria-label="Services"></a>
+  <div class="header-top">
+    <img class="header-logo" src="uploads/logo_crop.png" alt="Dell Technologies">
+    <div class="header-search">
+      <input type="text" placeholder="Search Dell or identify your product">
+      <button type="button" aria-label="Search" data-alert="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+    </div>
+    <div class="header-utils">
+      <button type="button" class="header-item" data-alert="Sign In"><svg width="16" height="16" viewBox="0 0 16 16"><path fill="#707070" d="M16 16H0l.11-.54c0-.21.52-4.4 3.68-6.55l.32-.21.31.21a5.48 5.48 0 0 0 7.16.09l.31-.21.32.21c3.26 2.15 3.68 6.34 3.68 6.55L16 16zM1.16 14.93h13.58A8.67 8.67 0 0 0 11.89 10 6.71 6.71 0 0 1 4 10a9.34 9.34 0 0 0-2.84 4.93zM8 0a4.51 4.51 0 0 0-4.424 5.39 4.51 4.51 0 0 0 8.174 1.625A4.51 4.51 0 0 0 8 0zm0 7.94a3.44 3.44 0 0 1-2.442-5.872A3.44 3.44 0 0 1 11.43 4.51 3.44 3.44 0 0 1 8 7.94z"/></svg>Sign In <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+      <button type="button" class="header-item" data-alert="Contact Us"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#707070" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="12" width="4" height="6" rx="1.5"/><rect x="17" y="12" width="4" height="6" rx="1.5"/></svg>Contact Us</button>
+      <button type="button" class="header-item" data-alert="UK/EN"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#707070" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.3 3 14.7 0 18M12 3c-3 3.3-3 14.7 0 18"/></svg>UK/EN <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+      <button type="button" class="header-item" data-alert="Basket"><svg width="16" height="16" viewBox="0 0 16 16"><path fill="#707070" d="M16 3.09H2.88L2 .32H0v1.07h1.17L4.48 12.8h8.85v-1.07h-8L4.8 9.92h9.81L16 3.09zM4.48 8.85L3.09 4.16h11.52l-1 4.69H4.48z"/><path fill="#707070" d="M12.59 12.05c-.239-.001-.477.045-.698.136a1.81 1.81 0 0 0-1.122 1.684 1.74 1.74 0 0 0 .118.707c.088.225.222.429.393.599a1.74 1.74 0 0 0 1.309.504 1.74 1.74 0 0 0 1.81-1.81 1.8 1.8 0 0 0-1.81-1.82zm0 2.56a.75.75 0 0 1-.54-1.28.75.75 0 0 1 1.28.54.73.73 0 0 1-.74.74zm-7.47-2.56a1.8 1.8 0 0 0-1.81 1.82 1.73 1.73 0 0 0 1.81 1.81 1.73 1.73 0 0 0 1.81-1.81 1.8 1.8 0 0 0-1.81-1.82zm0 2.56a.75.75 0 0 1-.527-1.284.75.75 0 0 1 1.277.544.73.73 0 0 1-.75.74z"/></svg>Basket <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <a class="header-item" href="https://www.dell.com/en-uk/shop" target="_blank" rel="noopener">Products</a>
+    <a class="header-item" href="https://www.dell.com/en-uk/dt/solutions/index.htm" target="_blank" rel="noopener">Solutions</a>
+    <a class="header-item" href="https://www.dell.com/en-uk/dt/services/index.htm" target="_blank" rel="noopener">Services</a>
+    <div class="support-menu-wrap">
+      <button type="button" class="header-item" id="supportToggle" aria-expanded="false">Support <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+      <div class="support-menu" id="supportMenu">
+        <button type="button">Support Home</button>
+        <button type="button">Support Library</button>
+        <button type="button">Support Videos</button>
+        <button type="button">Support Services &amp; Warranty</button>
+        <a href="webpage_layout/index.html#dd">Drivers &amp; Downloads</a>
+        <button type="button">Manuals &amp; Documentation</button>
+        <a href="webpage_layout/index.html#diag">PC Diagnostics</a>
+        <a href="webpage_layout/index.html#pr">Self-Repair &amp; Parts</a>
+        <a href="webpage_layout/index.html#sr">Service Requests &amp; Dispatch Status</a>
+        <button type="button">Order Support</button>
+        <button type="button">Contact Technical Support</button>
+        <button type="button">Community</button>
+      </div>
+    </div>
+  </nav>
 </header>
 
 <!-- ════════════════ HERO ════════════════ -->
@@ -585,6 +747,32 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
   });
+});
+
+// Top offset toggle: shows a 100px spacer above the header
+const offsetSwitch = document.getElementById('offsetSwitch');
+offsetSwitch.addEventListener('click', () => {
+  const on = offsetSwitch.getAttribute('aria-checked') !== 'true';
+  offsetSwitch.setAttribute('aria-checked', on);
+  document.getElementById('offsetSpacer').classList.toggle('on', on);
+});
+
+// Support dropdown in the header nav
+const supportToggle = document.getElementById('supportToggle');
+const supportMenu = document.getElementById('supportMenu');
+const setSupportOpen = open => {
+  supportMenu.classList.toggle('open', open);
+  supportToggle.setAttribute('aria-expanded', open);
+};
+supportToggle.addEventListener('click', () => setSupportOpen(!supportMenu.classList.contains('open')));
+supportMenu.querySelectorAll('button').forEach(item => {
+  item.addEventListener('click', () => {
+    setSupportOpen(false);
+    alert(item.textContent);
+  });
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.support-menu-wrap')) setSupportOpen(false);
 });
 
 // Placeholder actions (the design's alert('<label>') buttons)
