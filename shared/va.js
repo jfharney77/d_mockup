@@ -208,7 +208,15 @@
     }
   }
 
-  vaFab.addEventListener('click', () => setOpen(!vaPanel.classList.contains('open')));
+  vaFab.addEventListener('click', () => {
+    // Clear chat content when the Virtual Assistant button is clicked
+    chatMessages = [];
+    chatEnded = false;
+    thinking = false;
+    persistChat();
+    renderMessages();
+    setOpen(!vaPanel.classList.contains('open'));
+  });
   vaClose.addEventListener('click', () => setOpen(false));
   vaSend.addEventListener('click', sendMessage);
   vaInput.addEventListener('keydown', e => {
