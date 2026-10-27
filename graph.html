@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Visualization</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+        .controls {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .controls label {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        .controls input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .controls button {
+            padding: 8px 16px;
+            background-color: #0076ce;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .controls button:hover {
+            background-color: #005a9e;
+        }
+        canvas {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            cursor: grab;
+        }
+        canvas:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <label for="visitId">visit_id:</label>
+        <input type="text" id="visitId" placeholder="Enter visit ID">
+        <button id="startBtn">Start</button>
+    </div>
+    <canvas id="graphCanvas" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const nodes = [];
+        const edges = [];
+        const nodeRadius = 30;
+
+        let isDragging = false;
+        let draggedNode = null;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        function drawNode(x, y, label, type) {
+            ctx.beginPath();
+            ctx.arc(x, y, nodeRadius, 0, Math.PI * 2);
+            if (type === 'visit') {
+                ctx.fillStyle = '#0076ce';
+                ctx.strokeStyle = '#005a9e';
+            } else if (type === 'url') {
+                ctx.fillStyle = '#dc3545';
+                ctx.strokeStyle = '#a71d2a';
+            }
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, x, y);
+        }
+
+        function drawLegend() {
+            const legendX = canvas.width - 120;
+            const legendY = 20;
+            const itemHeight = 30;
+
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+
+            // VISIT legend item
+            ctx.beginPath();
+            ctx.arc(legendX, legendY, 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#0076ce';
+            ctx.fill();
+            ctx.strokeStyle = '#005a9e';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.fillText('VISIT', legendX + 20, legendY);
+
+            // URL legend item
+            ctx.beginPath();
+            ctx.arc(legendX, legendY + itemHeight, 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#dc3545';
+            ctx.fill();
+            ctx.strokeStyle = '#a71d2a';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.fillText('(URL)', legendX + 20, legendY + itemHeight);
+        }
+
+        function drawEdge(fromX, fromY, toX, toY) {
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawLegend();
+
+            edges.forEach(edge => {
+                drawEdge(edge.from.x, edge.from.y, edge.to.x, edge.to.y);
+            });
+
+            nodes.forEach(node => {
+                drawNode(node.x, node.y, node.label, node.type);
+            });
+        }
+
+        function addNode(x, y, label, type) {
+            nodes.push({ x, y, label, type });
+            render();
+        }
+
+        function addEdge(fromIndex, toIndex) {
+            edges.push({ from: nodes[fromIndex], to: nodes[toIndex] });
+            render();
+        }
+
+        function init() {
+            const visitId = document.getElementById('visitId').value || '1';
+            addNode(400, 300, visitId, 'visit');
+
+            setTimeout(() => {
+                addNode(250, 200, '2', 'url');
+                addEdge(0, 1);
+            }, 2000);
+
+            setTimeout(() => {
+                addNode(550, 200, '3', 'url');
+                addEdge(0, 2);
+            }, 4000);
+        }
+
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        function getNodeAtPosition(x, y) {
+            for (let i = nodes.length - 1; i >= 0; i--) {
+                const node = nodes[i];
+                const dx = x - node.x;
+                const dy = y - node.y;
+                if (dx * dx + dy * dy <= nodeRadius * nodeRadius) {
+                    return node;
+                }
+            }
+            return null;
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getMousePos(e);
+            const node = getNodeAtPosition(pos.x, pos.y);
+            if (node) {
+                isDragging = true;
+                draggedNode = node;
+                dragOffsetX = pos.x - node.x;
+                dragOffsetY = pos.y - node.y;
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDragging && draggedNode) {
+                const pos = getMousePos(e);
+                draggedNode.x = pos.x - dragOffsetX;
+                draggedNode.y = pos.y - dragOffsetY;
+                render();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            draggedNode = null;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+            draggedNode = null;
+        });
+
+        document.getElementById('startBtn').addEventListener('click', init);
+    </script>
+</body>
+</html>

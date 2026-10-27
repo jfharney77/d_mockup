@@ -99,9 +99,32 @@
         const div = el('va-msg-bot',
           '<div class="va-msg-header">' + sparkSvg + '<button aria-label="Read aloud">' + speakerSvg + '</button></div>' +
           '<p class="va-msg-bot-text"></p>' +
+          '<ul class="va-result-list"></ul>' +
           '<div class="va-question-list"></div>' +
           '<div class="va-msg-actions"><button aria-label="Helpful">' + thumbUpSvg + '</button><button aria-label="Not helpful">' + thumbDownSvg + '</button></div>');
         div.querySelector('.va-msg-bot-text').textContent = m.text;
+        const resultList = div.querySelector('.va-result-list');
+        (m.results || []).forEach(result => {
+          const item = document.createElement('li');
+          let url = null;
+          try {
+            const parsed = new URL(result.url);
+            if (parsed.protocol === 'http:' || parsed.protocol === 'https:') url = parsed.href;
+          } catch (e) {}
+          const title = document.createElement('a');
+          title.textContent = result.title;
+          title.href = url || '#';
+          if (url) {
+            title.target = '_blank';
+            title.rel = 'noopener';
+          } else {
+            title.addEventListener('click', e => e.preventDefault());
+          }
+          item.appendChild(title);
+          if (result.term) item.appendChild(document.createTextNode(` (Search Terms: ${result.term})`));
+          resultList.appendChild(item);
+        });
+        if (!resultList.childElementCount) resultList.remove();
         const questionList = div.querySelector('.va-question-list');
         (m.questions || []).forEach(question => {
           const button = document.createElement('button');
@@ -288,11 +311,44 @@
           });
         }
       } else {
-        // semantic search mode - just put "blank" in the chat
-        chatMessages.push({
-          isBot: true,
-          text: 'blank'
-        });
+        // semantic search mode - call the weighing-agent API
+        try {
+          const response = await fetch('http://localhost:8001/weighing-agent/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              service_tag: serviceTag,
+              visit_id: visitId,
+              start_date: start,
+              end_date: end
+            })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
+          const searchTerms = Array.isArray(data.search_terms) ? data.search_terms : [];
+          const searchResults = Array.isArray(data.search_results) ? data.search_results : [];
+          chatMessages.push({
+            isBot: true,
+            text: [
+              'Context Summary:',
+              data.context_summary || 'No context summary was returned.',
+              '',
+              'Search Results:',
+              ...(searchResults.length ? [] : ['No search results were returned.'])
+            ].join('\n'),
+            results: searchResults.map((result, i) => ({
+              title: result?.title || 'Untitled',
+              url: result?.url || '',
+              term: result?.search_term || searchTerms[i] || ''
+            }))
+          });
+        } catch (error) {
+          console.error('Weighing agent API error:', error);
+          chatMessages.push({
+            isBot: true,
+            text: 'Sorry, I couldn\'t run semantic search. Error: ' + error.message
+          });
+        }
       }
 
       thinking = false;
