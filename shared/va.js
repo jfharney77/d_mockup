@@ -73,7 +73,9 @@
   let chatEnded = false;
   let thinking = false;
   let replyTimer = null;
+  let isFirstUserMessage = true;
 
+  // Clear any persisted chat on page load to prevent duplication
   save(CHAT_KEY, JSON.stringify({ messages: chatMessages, ended: chatEnded }));
 
   function persistChat() {
@@ -90,6 +92,23 @@
 
   function renderMessages() {
     vaMessages.innerHTML = '';
+
+    // Sign-in card (displayed first if enabled)
+    const showSignin = document.getElementById('showSignin')?.checked !== false;
+    if (showSignin && (chatMessages.length || thinking || chatEnded)) {
+      const signin = el('', sparkSvg +
+        '<div class="va-signin-card">' +
+          '<h3>Save your chats</h3>' +
+          '<p>Sign in to start saving your chats. Once you\'re signed in, you can access your recent chats in the menu.</p>' +
+          '<div class="va-signin-actions">' +
+            '<button class="btn-primary">Sign In</button>' +
+            '<button class="btn-secondary">Create an Account</button>' +
+          '</div>' +
+        '</div>');
+      signin.style.cssText = 'display:flex;flex-direction:column;gap:14px';
+      vaMessages.appendChild(signin);
+    }
+
     chatMessages.forEach(m => {
       if (m.isUser) {
         const div = el('va-msg-user', '<div class="va-msg-user-bubble"></div>');
@@ -102,7 +121,7 @@
           '<ul class="va-result-list"></ul>' +
           '<div class="va-question-list"></div>' +
           '<div class="va-msg-actions"><button aria-label="Helpful">' + thumbUpSvg + '</button><button aria-label="Not helpful">' + thumbDownSvg + '</button></div>');
-        div.querySelector('.va-msg-bot-text').textContent = m.text;
+        div.querySelector('.va-msg-bot-text').innerHTML = m.text;
         const resultList = div.querySelector('.va-result-list');
         (m.results || []).forEach(result => {
           const item = document.createElement('li');
@@ -141,26 +160,11 @@
         vaMessages.appendChild(div);
       }
     });
-
     // "I'm working on your response..." while a reply is pending
     if (thinking) {
       vaMessages.appendChild(el('va-thinking', spinnerSvg + '<p>I’m working on your response...</p>'));
     }
 
-    // Sign-in card
-    if (chatMessages.length || thinking || chatEnded) {
-      const signin = el('', sparkSvg +
-        '<div class="va-signin-card">' +
-          '<h3>Save your chats</h3>' +
-          '<p>Sign in to start saving your chats. Once you\'re signed in, you can access your recent chats in the menu.</p>' +
-          '<div class="va-signin-actions">' +
-            '<button class="btn-primary">Sign In</button>' +
-            '<button class="btn-secondary">Create an Account</button>' +
-          '</div>' +
-        '</div>');
-      signin.style.cssText = 'display:flex;flex-direction:column;gap:14px';
-      vaMessages.appendChild(signin);
-    }
 
     // "Chat ended" notice with a Start a New Chat button
     if (chatEnded && !thinking) {
@@ -186,24 +190,100 @@
     renderMessages();
     clearTimeout(replyTimer);
 
-    // Call the visit-ids API proxy
-    try {
-      const response = await fetch('http://localhost:8001/visit-ids', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ service_tag: text })
-      });
+    // Simulate a brief delay for natural feel
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorData)}`);
+    const apiMode = document.querySelector('input[name="apiMode"]:checked')?.value || 'probing';
+
+    if (isFirstUserMessage) {
+      const serviceTag = document.getElementById('serviceTag')?.value?.trim() || '';
+      let botMessage = {
+        isBot: true,
+        text: `Thank you for reaching out about ${text}. We understand how frustrating that can be. We can help with that.\nWe found your device with <strong>Service Tag ${serviceTag}</strong>`
+      };
+
+      if (apiMode === 'probing') {
+        // Call the probing-agent API to get questions
+        try {
+          const visitId = document.getElementById('visitId')?.value?.trim() || '';
+          const start = document.getElementById('startDate')?.value?.trim() || '';
+          const end = document.getElementById('endDate')?.value?.trim() || '';
+
+          const response = await fetch('http://localhost:8001/probing-agent/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              service_tag: serviceTag,
+              visit_id: visitId,
+              start_date: start,
+              end_date: end
+            })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
+
+          const questions = Array.isArray(data.probing_questions)
+            ? data.probing_questions.slice(0, 3).map(item => item?.question).filter(Boolean)
+            : [];
+
+          botMessage.questions = questions.length > 0 ? questions : ['Check for service request', 'Check on a request', 'Troubleshoot audio problem'];
+        } catch (error) {
+          console.error('Probing agent API error:', error);
+          // Fallback to default questions on error
+          botMessage.questions = ['Check for service request', 'Check on a request', 'Troubleshoot audio problem'];
+        }
+      } else if (apiMode === 'semantic') {
+        // Call the weighing-agent API to get semantic search results
+        try {
+          const visitId = document.getElementById('visitId')?.value?.trim() || '';
+          const start = document.getElementById('startDate')?.value?.trim() || '';
+          const end = document.getElementById('endDate')?.value?.trim() || '';
+          const showSemanticContext = document.getElementById('showSemanticContext')?.checked !== false;
+
+          const response = await fetch('http://localhost:8001/weighing-agent/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              service_tag: serviceTag,
+              visit_id: visitId,
+              start_date: start,
+              end_date: end
+            })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
+
+          const searchTerms = Array.isArray(data.search_terms) ? data.search_terms : [];
+          const searchResults = Array.isArray(data.search_results) ? data.search_results : [];
+
+          if (showSemanticContext) {
+            // Always remove "Search Results:" section from context summary to avoid duplication
+            let contextSummary = data.context_summary || 'No context summary was returned.';
+            // Use regex to remove everything from "Search Results:" to end of string
+            contextSummary = contextSummary.replace(/Search Results:.*$/s, '').trim();
+            botMessage.text += '\n\nContext Summary:\n' + contextSummary;
+          }
+          // Only add results if there are any
+          if (searchResults.length > 0) {
+            botMessage.results = searchResults.map((result, i) => ({
+              title: result?.title || 'Untitled',
+              url: result?.url || '',
+              term: result?.search_term || searchTerms[i] || ''
+            }));
+          }
+        } catch (error) {
+          console.error('Weighing agent API error:', error);
+          botMessage.text += '\n\nSorry, I couldn\'t retrieve the semantic search results. Error: ' + error.message;
+        }
       }
 
-      const data = await response.json();
-      chatMessages.push({ isBot: true, text: JSON.stringify(data, null, 2) });
-    } catch (error) {
-      console.error('API Error:', error);
-      chatMessages.push({ isBot: true, text: 'Sorry, I couldn\'t retrieve the visit IDs. Error: ' + error.message });
+      chatMessages.push(botMessage);
+      isFirstUserMessage = false;
+    } else {
+      chatMessages.push({
+        isBot: true,
+        text: 'OK'
+      });
     }
 
     thinking = false;
@@ -213,9 +293,14 @@
 
   function startNewChat() {
     clearTimeout(replyTimer);
-    chatMessages = [{ isBot: true, text: 'Hi! How can I help you today?' }];
+    chatMessages = [{
+      isBot: true,
+      text: 'Select a topic or enter your specific information.',
+      questions: ['Check for service request', 'Check on a request', 'Troubleshoot audio problem']
+    }];
     chatEnded = false;
     thinking = false;
+    isFirstUserMessage = true;
     persistChat();
     renderMessages();
     vaInput.focus();
@@ -236,6 +321,7 @@
     chatMessages = [];
     chatEnded = false;
     thinking = false;
+    isFirstUserMessage = true;
     persistChat();
     renderMessages();
 
@@ -249,106 +335,23 @@
       const visitId = document.getElementById('visitId')?.value?.trim() || '';
       const start = document.getElementById('startDate')?.value?.trim() || '';
       const end = document.getElementById('endDate')?.value?.trim() || '';
-
-      const context = [
-        serviceTag && `service_tag: ${serviceTag}`,
-        start && `start: ${start}`,
-        end && `end: ${end}`,
-        visitId && `visit_id: ${visitId}`
-      ].filter(Boolean).join('\n');
+      const showProbingResponse = document.getElementById('showProbingResponse')?.checked !== false;
 
       chatMessages = [{
         isBot: true,
-        text: context ? `Virtual Assistant relaunched with:\n${context}` : 'Hi! How can I help you today?'
+        text: 'Select a topic or enter your specific information.',
+        questions: apiMode === 'probing' ? ['Check for service request', 'Check on a request', 'Troubleshoot audio problem'] : []
       }];
       chatEnded = false;
-      thinking = true;
+      thinking = false;
+      isFirstUserMessage = true;
       persistChat();
       renderMessages();
 
       if (apiMode === 'probing') {
-        try {
-          const response = await fetch('http://localhost:8001/probing-agent/run', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              service_tag: serviceTag,
-              visit_id: visitId,
-              start_date: start,
-              end_date: end
-            })
-          });
-          const data = await response.json();
-          if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
-          const questions = Array.isArray(data.probing_questions)
-            ? data.probing_questions.slice(0, 3).map(item => item?.question).filter(Boolean)
-            : [];
-          chatMessages.push({
-            isBot: true,
-            text: questions.length
-              ? 'Select a topic or enter your specific information.'
-              : 'No probing questions were returned.',
-            questions
-          });
-        } catch (error) {
-          console.error('Probing agent API error:', error);
-          const fallbackQuestions = [
-            'Why is there something rather than nothing?',
-            'What does your subjective experience of the color red look like?',
-            'If every part of an object is replaced over time, does it remain the same object?',
-            'What happened before time began?',
-            'Is the statement "This statement is false" true or false?',
-            'Does the universe have an intrinsic purpose?'
-          ];
-          for (let i = fallbackQuestions.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [fallbackQuestions[i], fallbackQuestions[j]] = [fallbackQuestions[j], fallbackQuestions[i]];
-          }
-          chatMessages.push({
-            isBot: true,
-            text: 'Select a topic or enter your specific information.',
-            questions: fallbackQuestions.slice(0, 3)
-          });
-        }
+        // No API call - just show the initial message with default buttons
       } else {
-        // semantic search mode - call the weighing-agent API
-        try {
-          const response = await fetch('http://localhost:8001/weighing-agent/run', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              service_tag: serviceTag,
-              visit_id: visitId,
-              start_date: start,
-              end_date: end
-            })
-          });
-          const data = await response.json();
-          if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
-          const searchTerms = Array.isArray(data.search_terms) ? data.search_terms : [];
-          const searchResults = Array.isArray(data.search_results) ? data.search_results : [];
-          chatMessages.push({
-            isBot: true,
-            text: [
-              'Context Summary:',
-              data.context_summary || 'No context summary was returned.',
-              '',
-              'Search Results:',
-              ...(searchResults.length ? [] : ['No search results were returned.'])
-            ].join('\n'),
-            results: searchResults.map((result, i) => ({
-              title: result?.title || 'Untitled',
-              url: result?.url || '',
-              term: result?.search_term || searchTerms[i] || ''
-            }))
-          });
-        } catch (error) {
-          console.error('Weighing agent API error:', error);
-          chatMessages.push({
-            isBot: true,
-            text: 'Sorry, I couldn\'t run semantic search. Error: ' + error.message
-          });
-        }
+        // semantic search mode - no API call on launch, just show initial message
       }
 
       thinking = false;
@@ -367,70 +370,20 @@
     const start = event.detail?.start || '';
     const end = event.detail?.end || '';
     const visitId = event.detail?.visitId || '';
-    const context = [
-      serviceTag && `service_tag: ${serviceTag}`,
-      start && `start: ${start}`,
-      end && `end: ${end}`,
-      visitId && `visit_id: ${visitId}`
-    ].filter(Boolean).join('\n');
+    const showProbingResponse = document.getElementById('showProbingResponse')?.checked !== false;
     chatMessages = [{
       isBot: true,
-      text: context ? `Virtual Assistant relaunched with:\n${context}` : 'Hi! How can I help you today?'
+      text: 'Select a topic or enter your specific information.',
+      questions: ['Check for service request', 'Check on a request', 'Troubleshoot audio problem']
     }];
     chatEnded = false;
-    thinking = true;
+    thinking = false;
+    isFirstUserMessage = true;
     persistChat();
     setOpen(true);
-
-    try {
-      const response = await fetch('http://localhost:8001/probing-agent/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          service_tag: serviceTag,
-          visit_id: visitId,
-          start_date: start,
-          end_date: end
-        })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
-      const questions = Array.isArray(data.probing_questions)
-        ? data.probing_questions.slice(0, 3).map(item => item?.question).filter(Boolean)
-        : [];
-      chatMessages.push({
-        isBot: true,
-        text: questions.length
-          ? 'Select a topic or enter your specific information.'
-          : 'No probing questions were returned.',
-        questions
-      });
-    } catch (error) {
-      console.error('Probing agent API error:', error);
-      const fallbackQuestions = [
-        'Why is there something rather than nothing?',
-        'What does your subjective experience of the color red look like?',
-        'If every part of an object is replaced over time, does it remain the same object?',
-        'What happened before time began?',
-        'Is the statement "This statement is false" true or false?',
-        'Does the universe have an intrinsic purpose?'
-      ];
-      for (let i = fallbackQuestions.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [fallbackQuestions[i], fallbackQuestions[j]] = [fallbackQuestions[j], fallbackQuestions[i]];
-      }
-      chatMessages.push({
-        isBot: true,
-        text: 'Select a topic or enter your specific information.',
-        questions: fallbackQuestions.slice(0, 3)
-      });
-    }
-
-    thinking = false;
-    persistChat();
     renderMessages();
   });
 
-  // Reopen the drawer if it was open on the previous page
-  if (load(OPEN_KEY) === '1') setOpen(true);
+  // Do not reopen the drawer on page reload - always start closed
+  // if (load(OPEN_KEY) === '1') setOpen(true);
 })();
