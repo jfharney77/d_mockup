@@ -91,6 +91,12 @@
     return div;
   }
 
+  function escapeHtml(value) {
+    const span = document.createElement('span');
+    span.textContent = String(value);
+    return span.innerHTML;
+  }
+
   function renderMessages() {
     vaMessages.innerHTML = '';
 
@@ -121,8 +127,12 @@
           '<p class="va-msg-bot-text"></p>' +
           '<ul class="va-result-list"></ul>' +
           '<div class="va-question-list"></div>' +
+          '<div class="va-coveo-slot"></div>' +
+          '<div class="va-troubleshooting-slot"></div>' +
           '<div class="va-msg-actions"><button aria-label="Helpful">' + thumbUpSvg + '</button><button aria-label="Not helpful">' + thumbDownSvg + '</button></div>');
-        div.querySelector('.va-msg-bot-text').innerHTML = m.text;
+        const botText = div.querySelector('.va-msg-bot-text');
+        botText.innerHTML = m.text;
+        if (!m.text) botText.remove();
         const resultList = div.querySelector('.va-result-list');
         (m.results || []).forEach(result => {
           const item = document.createElement('li');
@@ -153,6 +163,31 @@
           button.textContent = question;
           button.addEventListener('click', () => {
             const apiMode = document.querySelector('input[name="apiMode"]:checked')?.value || 'probing';
+            if (index === 0) {
+              chatMessages.push({
+                isBot: true,
+                text: '',
+                coveoSearch: true
+              });
+              persistChat();
+              renderMessages();
+              return;
+            }
+            if (index === 2) {
+              const serviceTag = document.getElementById('serviceTag')?.value?.trim() || '';
+              const issue = [...chatMessages].reverse().find(message => message.isUser)?.text || '';
+              chatMessages.push({
+                isBot: true,
+                text: 'It looks like this issue needs guided support from our advanced troubleshooting assistant.<br>This form will log the details of this conversation for our Support team’s reference.',
+                troubleshooting: true,
+                product: 'dell-pro-precision-pw716260-laptop',
+                serviceTag,
+                issue
+              });
+              persistChat();
+              renderMessages();
+              return;
+            }
             if (apiMode === 'merged' && index === 1 && mergedSemanticResults) {
               chatMessages.push({
                 isBot: true,
@@ -170,6 +205,66 @@
           questionList.appendChild(button);
         });
         if (!questionList.childElementCount) questionList.remove();
+        const coveoSlot = div.querySelector('.va-coveo-slot');
+        if (m.coveoSearch) {
+          coveoSlot.innerHTML =
+            '<article class="va-coveo-result">' +
+              '<h2>Troubleshooting Audio Sound Issues on Dell Computers</h2>' +
+              '<section><h3>Initial Checks</h3>' +
+                '<ol>' +
+                  '<li><strong>Check Audio Devices:</strong> Click the speaker icon on the Windows taskbar. Ensure the correct playback device is selected and not muted.</li>' +
+                  '<li><strong>Inspect Audio Ports:</strong> Turn off the computer, unplug all cables, and inspect the audio port for damage or debris. Clean gently with compressed air if necessary.</li>' +
+                '</ol>' +
+              '</section>' +
+              '<section><h3>Software Solutions</h3>' +
+                '<ol>' +
+                  '<li><strong>Run Windows Troubleshooter:</strong>' +
+                    '<ul><li>Click Start, search for &quot;Troubleshoot settings,&quot; and select &quot;Other troubleshooters.&quot;</li><li>Click &quot;Run&quot; next to &quot;Audio.&quot;</li></ul>' +
+                  '</li>' +
+                  '<li><strong>Update Audio Drivers:</strong>' +
+                    '<ul><li>Right-click Start, select Device Manager.</li><li>Expand &quot;Sound, video and game controllers.&quot;</li><li>Right-click your audio device and select &quot;Update driver.&quot;</li><li>Alternatively, download the latest driver from Dell Drivers &amp; Downloads and install it.</li></ul>' +
+                  '</li>' +
+                '</ol>' +
+              '</section>' +
+              '<section><h3>Advanced Steps</h3>' +
+                '<ol>' +
+                  '<li><strong>BIOS and Chipset Drivers:</strong> Update your BIOS and chipset drivers if the issue persists.</li>' +
+                  '<li><strong>Run Diagnostics:</strong> Use SupportAssist to run diagnostics on audio devices.</li>' +
+                '</ol>' +
+              '</section>' +
+              '<section><h3>Specific Issue</h3>' +
+                '<p>For Alienware x15 R2 users experiencing decreasing audio volume over time, update the audio driver to version 6.0.9605.1 or later.</p>' +
+                '<p>If the issue remains unresolved, the available documentation</p>' +
+              '</section>' +
+            '</article>';
+        } else {
+          coveoSlot.remove();
+        }
+        const troubleshootingSlot = div.querySelector('.va-troubleshooting-slot');
+        if (m.troubleshooting) {
+          troubleshootingSlot.innerHTML =
+            '<div class="va-troubleshooting-card">' +
+              '<div class="va-device-details">' +
+                '<p><strong>Product:</strong> <span class="va-product-name"></span></p>' +
+                '<p><strong>Service Tag:</strong> <span class="va-service-tag"></span></p>' +
+                '<p><strong>Issue:</strong> <span class="va-issue"></span></p>' +
+              '</div>' +
+              '<form class="va-troubleshooting-form">' +
+                '<label>First Name <span>*</span><input type="text" name="firstName" required></label>' +
+                '<label>Last Name <span>*</span><input type="text" name="lastName" required></label>' +
+                '<label>Email Address <span>*</span><input type="email" name="email" required></label>' +
+                '<label>Phone Number <span>*</span><input type="tel" name="phone" required></label>' +
+                '<button type="submit">Continue</button>' +
+              '</form>' +
+              '<p class="va-privacy">Your privacy is important to us. We will only use your information to process your request. We will not share it with anyone. To learn more about how we use and protect your data, see our <a href="https://www.dell.com/learn/uk/en/ukcorp1/policies-privacy" target="_blank" rel="noopener">Dell Privacy Statement</a>.</p>' +
+            '</div>';
+          troubleshootingSlot.querySelector('.va-product-name').textContent = m.product;
+          troubleshootingSlot.querySelector('.va-service-tag').textContent = m.serviceTag;
+          troubleshootingSlot.querySelector('.va-issue').textContent = m.issue;
+          troubleshootingSlot.querySelector('form').addEventListener('submit', event => event.preventDefault());
+        } else {
+          troubleshootingSlot.remove();
+        }
         vaMessages.appendChild(div);
       }
     });
@@ -211,11 +306,13 @@
     if (isFirstUserMessage) {
       mergedSemanticResults = null;
       const serviceTag = document.getElementById('serviceTag')?.value?.trim() || '';
+      const safeText = escapeHtml(text);
+      const safeServiceTag = escapeHtml(serviceTag);
       let botMessage = {
         isBot: true,
         text: (apiMode === 'probing' || apiMode === 'merged')
-          ? `Thank you for reaching out about ${text}. Can you describe the issue?\nWe found your device with <strong>Service Tag ${serviceTag}</strong>`
-          : `Thank you for reaching out about ${text}. We understand how frustrating that can be. We can help with that.\nWe found your device with <strong>Service Tag ${serviceTag}</strong>`
+          ? `Thank you for reaching out about ${safeText}. Can you describe the issue?\nWe found your device with <strong>Service Tag ${safeServiceTag}</strong>`
+          : `Thank you for reaching out about ${safeText}. We understand how frustrating that can be. We can help with that.\nWe found your device with <strong>Service Tag ${safeServiceTag}</strong>`
       };
 
       if ((apiMode === 'probing' || apiMode === 'merged')) {
@@ -276,6 +373,59 @@
           } catch (error) {
             console.error('Weighing agent API error:', error);
             mergedSemanticResults = null;
+          }
+
+          try {
+            const visitId = document.getElementById('visitId')?.value?.trim() || '';
+            const start = document.getElementById('startDate')?.value?.trim() || '';
+            const end = document.getElementById('endDate')?.value?.trim() || '';
+            const intentResponse = await fetch('http://localhost:8001/online-context-intent-agent/run', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                service_tag: serviceTag,
+                visit_id: visitId,
+                start_date: start,
+                end_date: end
+              })
+            });
+            const intentData = await intentResponse.json();
+            if (!intentResponse.ok) throw new Error(`HTTP ${intentResponse.status}: ${JSON.stringify(intentData)}`);
+            if (intentData.error) throw new Error(intentData.error);
+            const intentPhrases = Array.isArray(intentData.intent_phrases)
+              ? intentData.intent_phrases.filter(phrase => typeof phrase === 'string' && phrase.trim()).slice(0, 5)
+              : [];
+            if (intentPhrases.length === 0) throw new Error('No intent phrases were returned.');
+
+            const similarityResponse = await fetch('http://localhost:8001/intent-similarity/compare', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                intent_phrases: intentPhrases,
+                reason: intentData.reason || '',
+                user_message: text
+              })
+            });
+            const similarityData = await similarityResponse.json();
+            if (!similarityResponse.ok) throw new Error(`HTTP ${similarityResponse.status}: ${JSON.stringify(similarityData)}`);
+            if (similarityData.error) throw new Error(similarityData.error);
+            const similarityScore = Number(similarityData.similarity_score);
+            if (!Number.isFinite(similarityScore)) throw new Error('No similarity score was returned.');
+
+            if (similarityScore < 5) {
+              botMessage.text = 'different intent';
+              botMessage.questions = [];
+              mergedSemanticResults = null;
+            } else {
+              botMessage.text += '\n\n<strong>Intent comparison</strong>' +
+                `<br><strong>Inferred intent:</strong> ${intentPhrases.map(escapeHtml).join(', ')}` +
+                `<br><strong>Reason:</strong> ${escapeHtml(intentData.reason || 'No reason was returned.')}` +
+                `<br><strong>Similarity score:</strong> ${escapeHtml(similarityScore)}/10` +
+                `<br><strong>Same intent:</strong> ${escapeHtml(similarityData.same_intent || 'N/A')}`;
+            }
+          } catch (error) {
+            console.error('Intent comparison API error:', error);
+            botMessage.text += `<br><br><strong>Intent comparison error:</strong> ${escapeHtml(error.message)}`;
           }
         }
       } else if (apiMode === 'semantic') {
