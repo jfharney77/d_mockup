@@ -74,6 +74,7 @@
   let thinking = false;
   let replyTimer = null;
   let isFirstUserMessage = true;
+  let mergedSemanticResults = null;
 
   // Clear any persisted chat on page load to prevent duplication
   save(CHAT_KEY, JSON.stringify({ messages: chatMessages, ended: chatEnded }));
@@ -145,12 +146,24 @@
         });
         if (!resultList.childElementCount) resultList.remove();
         const questionList = div.querySelector('.va-question-list');
-        (m.questions || []).forEach(question => {
+        (m.questions || []).forEach((question, index) => {
           const button = document.createElement('button');
           button.type = 'button';
           button.className = 'va-question-btn';
           button.textContent = question;
           button.addEventListener('click', () => {
+            const apiMode = document.querySelector('input[name="apiMode"]:checked')?.value || 'probing';
+            if (apiMode === 'merged' && index === 1 && mergedSemanticResults) {
+              chatMessages.push({
+                isBot: true,
+                text: 'Search Results:',
+                results: mergedSemanticResults
+              });
+              mergedSemanticResults = null;
+              persistChat();
+              renderMessages();
+              return;
+            }
             vaInput.value = question;
             vaInput.focus();
           });
@@ -196,13 +209,16 @@
     const apiMode = document.querySelector('input[name="apiMode"]:checked')?.value || 'probing';
 
     if (isFirstUserMessage) {
+      mergedSemanticResults = null;
       const serviceTag = document.getElementById('serviceTag')?.value?.trim() || '';
       let botMessage = {
         isBot: true,
-        text: `Thank you for reaching out about ${text}. We understand how frustrating that can be. We can help with that.\nWe found your device with <strong>Service Tag ${serviceTag}</strong>`
+        text: (apiMode === 'probing' || apiMode === 'merged')
+          ? `Thank you for reaching out about ${text}. Can you describe the issue?\nWe found your device with <strong>Service Tag ${serviceTag}</strong>`
+          : `Thank you for reaching out about ${text}. We understand how frustrating that can be. We can help with that.\nWe found your device with <strong>Service Tag ${serviceTag}</strong>`
       };
 
-      if (apiMode === 'probing') {
+      if ((apiMode === 'probing' || apiMode === 'merged')) {
         // Call the probing-agent API to get questions
         try {
           const visitId = document.getElementById('visitId')?.value?.trim() || '';
@@ -231,6 +247,36 @@
           console.error('Probing agent API error:', error);
           // Fallback to default questions on error
           botMessage.questions = ['Check for service request', 'Check on a request', 'Troubleshoot audio problem'];
+        }
+
+        if (apiMode === 'merged') {
+          try {
+            const visitId = document.getElementById('visitId')?.value?.trim() || '';
+            const start = document.getElementById('startDate')?.value?.trim() || '';
+            const end = document.getElementById('endDate')?.value?.trim() || '';
+            const response = await fetch('http://localhost:8001/weighing-agent/run', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                service_tag: serviceTag,
+                visit_id: visitId,
+                start_date: start,
+                end_date: end
+              })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
+            const searchTerms = Array.isArray(data.search_terms) ? data.search_terms : [];
+            const searchResults = Array.isArray(data.search_results) ? data.search_results : [];
+            mergedSemanticResults = searchResults.map((result, i) => ({
+              title: result?.title || 'Untitled',
+              url: result?.url || '',
+              term: result?.search_term || searchTerms[i] || ''
+            }));
+          } catch (error) {
+            console.error('Weighing agent API error:', error);
+            mergedSemanticResults = null;
+          }
         }
       } else if (apiMode === 'semantic') {
         // Call the weighing-agent API to get semantic search results
@@ -340,7 +386,7 @@
       chatMessages = [{
         isBot: true,
         text: 'Select a topic or enter your specific information.',
-        questions: apiMode === 'probing' ? ['Check for service request', 'Check on a request', 'Troubleshoot audio problem'] : []
+        questions: (apiMode === 'probing' || apiMode === 'merged') ? ['Check for service request', 'Check on a request', 'Troubleshoot audio problem'] : []
       }];
       chatEnded = false;
       thinking = false;
@@ -348,7 +394,7 @@
       persistChat();
       renderMessages();
 
-      if (apiMode === 'probing') {
+      if ((apiMode === 'probing' || apiMode === 'merged')) {
         // No API call - just show the initial message with default buttons
       } else {
         // semantic search mode - no API call on launch, just show initial message
