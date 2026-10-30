@@ -75,6 +75,7 @@
   let replyTimer = null;
   let isFirstUserMessage = true;
   let mergedSemanticResults = null;
+  let mergedSemanticGuide = null;
 
   // Clear any persisted chat on page load to prevent duplication
   save(CHAT_KEY, JSON.stringify({ messages: chatMessages, ended: chatEnded }));
@@ -164,10 +165,12 @@
           button.addEventListener('click', () => {
             const apiMode = document.querySelector('input[name="apiMode"]:checked')?.value || 'probing';
             if (index === 0) {
+              const useCoveoSemantic = document.getElementById('coveoSemantic')?.checked === true;
               chatMessages.push({
                 isBot: true,
-                text: '',
-                coveoSearch: true
+                text: useCoveoSemantic && !mergedSemanticGuide ? 'Unable to generate a merged semantic guide.' : '',
+                coveoSearch: !useCoveoSemantic,
+                coveoGuide: useCoveoSemantic ? mergedSemanticGuide : null
               });
               persistChat();
               renderMessages();
@@ -206,36 +209,73 @@
         });
         if (!questionList.childElementCount) questionList.remove();
         const coveoSlot = div.querySelector('.va-coveo-slot');
-        if (m.coveoSearch) {
+        if (m.coveoGuide) {
+          const article = document.createElement('article');
+          article.className = 'va-coveo-result';
+          const title = document.createElement('h2');
+          title.textContent = m.coveoGuide.title;
+          const subtitle = document.createElement('h3');
+          subtitle.textContent = 'Step-by-Step Guide';
+          const steps = document.createElement('ol');
+          m.coveoGuide.steps.forEach(step => {
+            const item = document.createElement('li');
+            const heading = document.createElement('strong');
+            heading.textContent = step.title;
+            item.appendChild(heading);
+            step.instructions.forEach(instruction => {
+              const paragraph = document.createElement('p');
+              paragraph.textContent = instruction;
+              item.appendChild(paragraph);
+            });
+            steps.appendChild(item);
+          });
+          article.append(title, subtitle, steps);
+          coveoSlot.appendChild(article);
+        } else if (m.coveoSearch) {
           coveoSlot.innerHTML =
             '<article class="va-coveo-result">' +
               '<h2>Troubleshooting Audio Sound Issues on Dell Computers</h2>' +
-              '<section><h3>Initial Checks</h3>' +
-                '<ol>' +
-                  '<li><strong>Check Audio Devices:</strong> Click the speaker icon on the Windows taskbar. Ensure the correct playback device is selected and not muted.</li>' +
-                  '<li><strong>Inspect Audio Ports:</strong> Turn off the computer, unplug all cables, and inspect the audio port for damage or debris. Clean gently with compressed air if necessary.</li>' +
-                '</ol>' +
-              '</section>' +
-              '<section><h3>Software Solutions</h3>' +
-                '<ol>' +
-                  '<li><strong>Run Windows Troubleshooter:</strong>' +
-                    '<ul><li>Click Start, search for &quot;Troubleshoot settings,&quot; and select &quot;Other troubleshooters.&quot;</li><li>Click &quot;Run&quot; next to &quot;Audio.&quot;</li></ul>' +
-                  '</li>' +
-                  '<li><strong>Update Audio Drivers:</strong>' +
-                    '<ul><li>Right-click Start, select Device Manager.</li><li>Expand &quot;Sound, video and game controllers.&quot;</li><li>Right-click your audio device and select &quot;Update driver.&quot;</li><li>Alternatively, download the latest driver from Dell Drivers &amp; Downloads and install it.</li></ul>' +
-                  '</li>' +
-                '</ol>' +
-              '</section>' +
-              '<section><h3>Advanced Steps</h3>' +
-                '<ol>' +
-                  '<li><strong>BIOS and Chipset Drivers:</strong> Update your BIOS and chipset drivers if the issue persists.</li>' +
-                  '<li><strong>Run Diagnostics:</strong> Use SupportAssist to run diagnostics on audio devices.</li>' +
-                '</ol>' +
-              '</section>' +
-              '<section><h3>Specific Issue</h3>' +
-                '<p>For Alienware x15 R2 users experiencing decreasing audio volume over time, update the audio driver to version 6.0.9605.1 or later.</p>' +
-                '<p>If the issue remains unresolved, the available documentation</p>' +
-              '</section>' +
+              '<h3>Step-by-Step Guide</h3>' +
+              '<ol>' +
+                '<li><strong>Check Default Audio Devices</strong>' +
+                  '<p>Click the speaker icon on the Windows taskbar.</p>' +
+                  '<p>Click the button next to the volume bar to select a sound output from the list of devices.</p>' +
+                  '<p>To set a device as the default, click on &ldquo;More volume settings,&rdquo; choose your default device, and set it as the default for audio or communications.</p>' +
+                '</li>' +
+                '<li><strong>Run the Windows Troubleshooter</strong>' +
+                  '<p>Click the Windows &ldquo;Start&rdquo; button, search for &ldquo;Troubleshoot settings,&rdquo; and select &ldquo;Other troubleshooters.&rdquo;</p>' +
+                  '<p>Click &ldquo;Run&rdquo; next to &ldquo;Audio&rdquo; to let Windows diagnose and suggest fixes.</p>' +
+                '</li>' +
+                '<li><strong>Update Audio Drivers</strong>' +
+                  '<p>Visit Dell.com/Support, identify your device, and download the latest audio driver.</p>' +
+                  '<p>Install the driver and restart your computer if needed.</p>' +
+                  '<p>Test the computer with the new driver and recheck the default audio device settings.</p>' +
+                '</li>' +
+                '<li><strong>Run Diagnostics on Audio Devices</strong>' +
+                  '<p>Open &ldquo;SupportAssist,&rdquo; navigate to the &ldquo;Support&rdquo; tab, and test the sound card.</p>' +
+                  '<p>Follow on-screen instructions and repeat the test if multiple devices are connected.</p>' +
+                '</li>' +
+                '<li><strong>Check Audio Ports and Cables</strong>' +
+                  '<p>Turn off your computer and unplug all cables.</p>' +
+                  '<p>Look closely at the audio port on your computer and the connector on your cable, headphones, or speakers.</p>' +
+                  '<p>Check for visible damage, such as bent pins, cracks, or a loose port.</p>' +
+                  '<p>Check for dust, lint, or debris inside the port.</p>' +
+                  '<p>If you see debris, use a can of compressed air to gently clean the port.</p>' +
+                  '<p>Reconnect your audio device and test the sound.</p>' +
+                '</li>' +
+                '<li><strong>Reinstall or Update Audio Drivers</strong>' +
+                  '<p>Right-click Start and select Device Manager.</p>' +
+                  '<p>Expand Sound, video and game controllers.</p>' +
+                  '<p>Right-click your audio device and select &ldquo;Update driver&rdquo; or &ldquo;Uninstall device,&rdquo; then restart the computer.</p>' +
+                  '<p>Alternatively, download the latest driver from Dell Drivers &amp; Downloads.</p>' +
+                  '<p>Restart the computer and test the audio.</p>' +
+                '</li>' +
+                '<li><strong>Update BIOS and Chipset Drivers</strong>' +
+                  '<p>If the issue persists, update your BIOS and chipset drivers.</p>' +
+                  '<p>If the problem remains unresolved, refer to Dell\'s support resources for further assistance.</p>' +
+                '</li>' +
+              '</ol>' +
+              '<p>If the steps above didn\'t address the issue or for help with a different device, enter Your Service Tag or product name and model. That will help us find the most relevant information for your device.</p>' +
             '</article>';
         } else {
           coveoSlot.remove();
@@ -305,6 +345,7 @@
 
     if (isFirstUserMessage) {
       mergedSemanticResults = null;
+      mergedSemanticGuide = null;
       const serviceTag = document.getElementById('serviceTag')?.value?.trim() || '';
       const safeText = escapeHtml(text);
       const safeServiceTag = escapeHtml(serviceTag);
@@ -351,6 +392,7 @@
             const visitId = document.getElementById('visitId')?.value?.trim() || '';
             const start = document.getElementById('startDate')?.value?.trim() || '';
             const end = document.getElementById('endDate')?.value?.trim() || '';
+            const generateGuide = document.getElementById('coveoSemantic')?.checked === true;
             const response = await fetch('http://localhost:8001/weighing-agent/run', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -358,7 +400,8 @@
                 service_tag: serviceTag,
                 visit_id: visitId,
                 start_date: start,
-                end_date: end
+                end_date: end,
+                generate_guide: generateGuide
               })
             });
             const data = await response.json();
@@ -370,9 +413,20 @@
               url: result?.url || '',
               term: result?.search_term || searchTerms[i] || ''
             }));
+            const guide = data.merged_guide;
+            mergedSemanticGuide = guide && typeof guide.title === 'string' && Array.isArray(guide.steps) && guide.steps.length >= 5
+              ? {
+                  title: guide.title,
+                  steps: guide.steps.filter(step =>
+                    step && typeof step.title === 'string' && Array.isArray(step.instructions)
+                  ).slice(0, 10)
+                }
+              : null;
+            if (data.guide_error) console.error('Merged semantic guide error:', data.guide_error);
           } catch (error) {
             console.error('Weighing agent API error:', error);
             mergedSemanticResults = null;
+            mergedSemanticGuide = null;
           }
 
           try {
@@ -416,6 +470,7 @@
               botMessage.text = 'different intent';
               botMessage.questions = [];
               mergedSemanticResults = null;
+              mergedSemanticGuide = null;
             } else {
               botMessage.text += '\n\n<strong>Intent comparison</strong>' +
                 `<br><strong>Inferred intent:</strong> ${intentPhrases.map(escapeHtml).join(', ')}` +

@@ -202,7 +202,9 @@
   padding-left: 26px;
 }
 .va-coveo-result li { margin-bottom: 8px; }
+.va-coveo-result > ol > li { margin-bottom: 20px; }
 .va-coveo-result li:last-child { margin-bottom: 0; }
+.va-coveo-result li p:first-of-type { margin-top: 8px; }
 .va-coveo-result ul {
   margin: 6px 0 10px;
   padding-left: 27px;
